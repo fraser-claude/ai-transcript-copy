@@ -12,37 +12,22 @@
         c.querySelectorAll('button').forEach(e => e.remove());
         if (type == 'chatgpt') {
             const oP = el.querySelectorAll('#code-block-viewer');
+            c.querySelectorAll('pre .items-center').forEach(e => e.remove());
             c.querySelectorAll('#code-block-viewer').forEach((e, i) => {
-                // Get language from the first .items-center in the original pre
-                const langText = oP[i]?.closest('pre')?.querySelector('.items-center')?.textContent || '';
-                const lang = langText.replace(/run$/i, '').replace(/\s+/g, '').toLowerCase();
                 const p = document.createElement('pre');
                 const cd = document.createElement('code');
-                if (lang) cd.className = 'language-' + lang;
                 cd.textContent = oP[i].innerText;
                 p.appendChild(cd);
                 e.closest('pre').replaceWith(p);
             });
         } else if (type == 'gemini') {
-            // Preserve language label before removing decoration
-            c.querySelectorAll('code-block').forEach(cb => {
-                const deco = cb.querySelector('.code-block-decoration');
-                const lang = deco?.textContent?.trim().toLowerCase();
-                if (lang) {
-                    const code = cb.querySelector('code');
-                    if (code && !code.className) code.className = 'language-' + lang;
-                }
-            });
-            c.querySelectorAll('code-block div.code-block-decoration, .cdk-visually-hidden, p.query-text-line br, source-footnote, sources-carousel-inline, source-inline-chip, overview-carousel').forEach(e => e.remove());
+            c.querySelectorAll('code-block div.code-block-decoration, .cdk-visually-hidden, p.query-text-line br, source-footnote').forEach(e => e.remove());
             c.querySelectorAll('li').forEach(e => e.innerText = e.innerText); // eslint-disable-line no-self-assign
         } else if (type == 'claude') {
-            // Remove code block chrome (copy buttons, language labels) — keep <pre><code>
             c.querySelectorAll('.code-block__code').forEach(pre => {
                 const wrapper = pre.closest('.group\\/copy');
                 if (wrapper) wrapper.replaceWith(pre);
             });
-            // Remove artifact-block references (content is in inaccessible iframe)
-            c.querySelectorAll('[class*="artifact-block"]').forEach(e => e.remove());
         }
         return c;
     };
@@ -97,17 +82,13 @@
         .replace(/<pre[^>]*><code[^>]*>([\s\S]*?)<\/code><\/pre>/gi, '\n```\n$1\n```\n')
         .replace(/<h([1-6])[^>]*>(.*?)<\/h\1>/gi, (m,n,t) => '#'.repeat(+n)+' '+t+'\n\n')
         .replace(/<code[^>]*>(.*?)<\/code>/gi, '`$1`')
-        .replace(/<a[^>]+href="([^"]*)"[^>]*>(.*?)<\/a>/gi, (m,href,txt) => txt ? '['+txt+']('+href+')' : href)
-        .replace(/<hr\s*\/?>/gi, '\n---\n')
-        .replace(/<tr[^>]*>([\s\S]*?)<\/tr>/gi, (m,cells) => cells.replace(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi, (_,c) => c.trim()+' | ').trimEnd().replace(/\|\s*$/, '')+'\n')
-        .replace(/<\/?(?:table|thead|tbody|tfoot)[^>]*>/gi, '\n')
         .replace(/<li[^>]*>/gi, '\n- ')
         .replace(/<br\s*\/?>/gi, '\n')
         .replace(/<\/p>/gi, '\n\n')
         .replace(/<\/?(?:b|strong)>/gi, '**')
         .replace(/<\/?(?:i|em)>/gi, '*')
         .replace(/<[^>]+>/g, '')
-        .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+        .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
         .replace(/\n{3,}/g, '\n\n')
         .trim();
 
