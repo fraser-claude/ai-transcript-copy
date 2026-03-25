@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-labels
 javascript:(function() {
   function convertListToMarkdown(e,d,i) {
     if (e.tagName === 'OL' || e.tagName === 'UL') {

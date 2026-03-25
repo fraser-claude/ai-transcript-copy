@@ -1,0 +1,17 @@
+{
+  "name": "ai-transcript-copy",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "eslint ai-transcript-copy.js copyGPT-markdown.js",
+    "test": "node --test",
+    "build": "node build.mjs",
+    "check": "pnpm run lint && pnpm run test && pnpm run build"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9",
+    "eslint": "^9",
+    "terser": "^5"
+  }
+}

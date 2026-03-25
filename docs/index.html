@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Transcript Copy</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 640px;
+      margin: 2rem auto;
+      padding: 0 1.25rem;
+      line-height: 1.6;
+      color: #1e293b;
+    }
+    h1 { margin-bottom: 0.25rem; }
+    h2 { margin-top: 2rem; }
+    .bookmarklet-wrap {
+      background: #f1f5f9;
+      border: 2px dashed #94a3b8;
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+      margin: 1rem 0 1.5rem;
+    }
+    .bookmarklet-wrap p {
+      margin: 0 0 0.75rem;
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+    .bookmarklet-link {
+      display: inline-block;
+      padding: 0.65rem 1.4rem;
+      background: #2563eb;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: grab;
+      user-select: none;
+    }
+    .bookmarklet-link:hover { background: #1d4ed8; }
+    ol, ul { padding-left: 1.5rem; }
+    li { margin-bottom: 0.25rem; }
+    code {
+      background: #f1f5f9;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 0.875em;
+    }
+    .note {
+      background: #fefce8;
+      border-left: 4px solid #eab308;
+      padding: 0.75rem 1rem;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.9rem;
+    }
+    footer {
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid #e2e8f0;
+      color: #94a3b8;
+      font-size: 0.875rem;
+    }
+    footer a { color: #64748b; }
+  </style>
+</head>
+<body>
+  <h1>AI Transcript Copy</h1>
+  <p>A bookmarklet that copies AI chat transcripts — ChatGPT, Gemini, NotebookLM, and Claude — to your clipboard as formatted rich text, ready to paste into a doc.</p>
+
+  <h2>Install</h2>
+  <div class="bookmarklet-wrap">
+    <p>Drag this button to your bookmarks bar:</p>
+    <a class="bookmarklet-link" href="javascript:(()%3D%3E%7Bconst%20e%3D%22fen-EA8C8B95%22%2Ct%3De%3D%3Ee.replace(%2F(%5C*%5C*%7C__)(.*%3F)%5C1%2Fg%2C%22%242%22).replace(%2F(%5C*%7C_)(.*%3F)%5C1%2Fg%2C%22%242%22).replace(%2F~~(.*%3F)~~%2Fg%2C%22%241%22).replace(%2F%60%7B1%2C3%7D(.*%3F)%60%7B1%2C3%7D%2Fg%2C%22%241%22).replace(%2F%5C%5B(%5B%5E%5C%5D%5D%2B)%5C%5D%5C(%5B%5E)%5D%2B%5C)%2Fg%2C%22%241%22).replace(%2F%5E%23%2B%5Cs%2B%2Fgm%2C%22%22)%3Bif(document.getElementById(e))return%20void%20alert(%60Dialog%20%23%24%7Be%7D%20already%20rendered.%60)%3Bconst%20o%3D(e%2Ct)%3D%3E%7Bconst%20o%3De.cloneNode(!0)%3Bif(o.querySelectorAll(%22button%22).forEach((e%2Ct)%3D%3Ee.remove())%2C%22chatgpt%22%3D%3Dt)%7Bconst%20t%3De.querySelectorAll(%22%23code-block-viewer%22)%3Bo.querySelectorAll(%22pre%20.items-center%22).forEach((e%2Ct)%3D%3Ee.remove())%2Co.querySelectorAll(%22%23code-block-viewer%22).forEach((e%2Co)%3D%3E%7Be.textContent%3D%22%5Cn%60%60%60%5Cn%22%2Bt%5Bo%5D.innerText%2B%22%5Cn%60%60%60%5Cn%5Cn%22%7D)%2Co.querySelectorAll(%22code%22).forEach((e%2Ct)%3D%3Ee.innerText%3D%22%60%22%2Be.innerText%2B%22%60%22)%7Delse%22gemini%22%3D%3Dt%26%26(o.querySelectorAll(%22code-block%20div.code-block-decoration%2C%20.cdk-visually-hidden%2C%20p.query-text-line%20br%22).forEach((e%2Ct)%3D%3Ee.remove())%2Co.querySelectorAll(%22li%22).forEach((e%2Ct)%3D%3Ee.innerText%3De.innerText))%3Breturn%20o%7D%3Bwindow.getSelection().removeAllRanges()%3Bconst%7Bhostname%3An%2Cpathname%3Al%2Csearch%3Ac%7D%3Dlocation%3Blet%20r%3Dnull%3Bif(%22chatgpt.com%22%3D%3Dlocation.hostname)r%3D%22chatgpt%22%3Belse%20if(%22gemini.google.com%22%3D%3Dlocation.hostname)r%3D%22gemini%22%3Belse%20if(%22notebooklm.google.com%22%3D%3Dlocation.hostname)r%3D%22notebooklm%22%3Belse%7Bif(%22claude.ai%22!%3Dlocation.hostname)return%20void%20alert(%60Unsupported%20host%20for%20copying%20transcript%3A%20%24%7Blocation.hostname%7D%60)%3Br%3D%22claude%22%7Dlet%20a%3Dnull%2Cs%3Dnull%3B%22chatgpt%22%3D%3Dr%3F(a%3D%22div%5Bdata-message-author-role%3D'user'%5D%22%2Cs%3D%22div%5Bdata-message-author-role%3D'assistant'%5D%22)%3A%22gemini%22%3D%3Dr%3F(a%3D%22user-query%20.query-text%22%2Cs%3D%22model-response%20message-content%2C%20%23extended-response-message-content%22)%3A%22notebooklm%22%3D%3Dr%3F(a%3D%22.from-user-message-inner-content%22%2Cs%3D%22.to-user-message-inner-content%22)%3A%22claude%22%3D%3Dr%26%26(a%3D%22div%5Bdata-testid%3D'user-message'%5D%22%2Cs%3D%22.font-claude-response%22)%3Bconst%20i%3Ddocument.createElement(%22div%22)%2Cd%3D%2214px%20sans-serif%22%2Cm%3D%22%23000%22%2Cp%3D%22%23fff%22%2Cu%3D%226px%22%3Bi.id%3De%2Ci.style.position%3D%22fixed%22%2Ci.style.top%3D%22calc(10vh)%22%2Ci.style.right%3D%22calc(10vw)%22%2Ci.style.width%3D%22calc(80vw)%22%2Ci.style.zIndex%3D%222147483647%22%2Ci.style.color%3Dm%2Ci.style.background%3Dp%2Ci.style.border%3D%221px%20solid%20%23ccc%22%2Ci.style.padding%3Du%2Ci.style.font%3Dd%3Bconst%20h%3Ddocument.createElement(%22label%22)%3Bh.textContent%3D%22Copy%20transcript%20starting%20with%3A%22%2Ch.style.display%3D%22block%22%2Ch.style.marginBottom%3Du%2Ch.style.font%3Dd%3Bconst%20y%3Ddocument.createElement(%22select%22)%3By.style.color%3Dm%2Cy.style.background%3Dp%2Cy.style.colorScheme%3D%22none%22%2Cy.style.padding%3Du%2Cy.style.width%3D%22calc(75vw)%22%2Cy.style.font%3Dd%2Cdocument.querySelectorAll(a).forEach((e%2Ct)%3D%3E%7Bconst%20n%3Ddocument.createElement(%22option%22)%3Bn.value%3Dt%3Bconst%20l%3Do(e%2Cr)%3Bn.textContent%3D%60Q%24%7Bt%2B1%7D%3A%20%24%7Bl.innerText.substring(0%2C100)%7D%60%2Cy.appendChild(n)%7D)%3Bconst%20g%3Ddocument.createElement(%22div%22)%3Bg.style.display%3D%22block%22%2Cg.style.marginTop%3Du%3Bconst%20f%3De%3D%3E%7Bconst%20t%3Ddocument.createElement(%22button%22)%3Breturn%20t.textContent%3De%2Ct.style.border%3D%221px%20solid%20%23ccc%22%2Ct.style.padding%3Du%2Ct.style.width%3D%22120px%22%2Ct.style.color%3Dm%2Ct.style.background%3Dp%2Ct.style.font%3Dd%2Ct%7D%2Cv%3Df(%22OK%22)%2Cb%3Df(%22Cancel%22)%3Bv.addEventListener(%22click%22%2Ce%3D%3E%7Bi.remove()%3Btry%7B(e%3D%3E%7Be%3DNumber(e)%3Bconst%20n%3D%5B...document.querySelectorAll(%60%24%7Ba%7D%2C%20%24%7Bs%7D%60)%5D%2Cl%3D%5B%5D%3Blet%20c%3D-1%3Bfor(let%20s%3D0%3Bs%3Cn.length%3Bs%2B%2B)%7Bconst%20i%3Dn%5Bs%5D.matches(a)%3Bi%26%26c%2B%2B%3Bconst%20d%3Do(n%5Bs%5D%2Cr)%3Bif(e%3C%3Dc)%7Bif(i)%7Bconst%20e%3Dt(d.innerText.replace(%2F%5Cs%2B%2Fg%2C%22%20%22).trim())%2Co%3D100%3Ce.length%3Fe.substring(0%2C100)%2B%22...%22%3Ae%2Cn%3Ddocument.createElement(%22h2%22)%3Bn.textContent%3D%60Q%24%7Bc%2B1%7D%20%24%7Bo%7D%60%2Cl.push(n.outerHTML)%7Dconst%20e%3DArray.from(d.querySelectorAll(%22h1%2C%20h2%2C%20h3%2C%20h4%2C%20h5%2C%20h6%22))%3Be.some(e%3D%3E%22H1%22%3D%3D%3De.tagName%7C%7C%22H2%22%3D%3D%3De.tagName)%26%26e.sort((e%2Ct)%3D%3Et.tagName.localeCompare(e.tagName)).forEach(e%3D%3E%7Bconst%20t%3DparseInt(e.tagName%5B1%5D)%3Bif(t%3C6)%7Bconst%20o%3Ddocument.createElement(%60h%24%7Bt%2B1%7D%60)%3Bfor(%3Be.firstChild%3B)o.appendChild(e.firstChild)%3BArray.from(e.attributes).forEach(e%3D%3Eo.setAttribute(e.name%2Ce.value))%2Ce.parentNode.replaceChild(o%2Ce)%7D%7D)%2Cl.push(d.innerHTML)%2Ci%26%26l.push(%22%3Cp%3E%3Cb%3E-------------%3C%2Fb%3E%3C%2Fp%3E%22)%7D%7Dconst%20i%3Ddocument.createElement(%22h1%22)%3Blet%20d%3Dnull%3B%22chatgpt%22%3D%3Dr%3Fd%3Ddocument.title%3A%22gemini%22%3D%3Dr%3Fd%3Ddocument.querySelector(%22span%5Bdata-test-id%3D'conversation-title'%5D%22)%3F.innerText%7C%7C%22Gemini%22%3A(%22notebooklm%22%3D%3Dr%7C%7C%22claude%22%3D%3Dr)%26%26(d%3Ddocument.title)%2Ci.textContent%3Dt(d)%3Bconst%20m%3Ddocument.createElement(%22p%22)%3Bm.textContent%3Dlocation.href%2C0%3D%3De%26%26l.unshift(%60%24%7Bi.outerHTML%7D%24%7Bm.outerHTML%7D%60)%3Bconst%20p%3Dl.join(%22%5Cn%5Cn%22)%3Bfunction%20u(e)%7Be.clipboardData.setData(%22text%2Fhtml%22%2Cp)%2Ce.clipboardData.setData(%22text%2Fplain%22%2Cp.replace(%2F%3C%5B%5E%3E%5D%2B%3E%2Fg%2C%22%22))%2Ce.preventDefault()%7Dif(document.addEventListener(%22copy%22%2Cu%2C%7Bonce%3A!0%7D)%2C!document.execCommand(%22copy%22))throw%20document.removeEventListener(%22copy%22%2Cu)%2Cnew%20Error(%22execCommand%20copy%20failed%22)%7D)(y.value)%2Calert(%22%E2%9C%85%20Transcript%20copied%20to%20clipboard!%22)%7Dcatch(e)%7Balert(%22%E2%9D%8C%20Copy%20failed.%20Check%20console%20for%20details.%22)%2Cconsole.error(e)%7D%7D)%2Cb.addEventListener(%22click%22%2C()%3D%3Ei.remove())%2Ci.appendChild(h)%2Ci.appendChild(y)%2Cg.appendChild(v)%2Cg.appendChild(b)%2Ci.appendChild(g)%2Cdocument.body.appendChild(i)%7D)()%3B" title="AI Transcript Copy bookmarklet">AI Transcript Copy</a>
+  </div>
+
+  <div class="note">
+    Make sure your bookmarks bar is visible first: <code>Ctrl+Shift+B</code> on Windows/Linux, <code>Cmd+Shift+B</code> on Mac.
+  </div>
+
+  <h2>Usage</h2>
+  <ol>
+    <li>Open a conversation on a supported AI site.</li>
+    <li>Click the <strong>AI Transcript Copy</strong> bookmark.</li>
+    <li>A dialog appears — choose which prompt to start copying from.</li>
+    <li>Click <strong>OK</strong>. The transcript is now in your clipboard.</li>
+    <li>Paste into Google Docs, Notion, Word, etc.</li>
+  </ol>
+
+  <h2>Supported sites</h2>
+  <ul>
+    <li>ChatGPT (<code>chatgpt.com</code>)</li>
+    <li>Gemini (<code>gemini.google.com</code>)</li>
+    <li>NotebookLM (<code>notebooklm.google.com</code>)</li>
+    <li>Claude (<code>claude.ai</code>)</li>
+  </ul>
+
+  <h2>Mobile</h2>
+  <p>Drag-and-drop doesn't work on mobile. Instead:</p>
+  <ol>
+    <li>Bookmark any page.</li>
+    <li>Edit that bookmark and replace the URL with the bookmarklet code from the <a href="https://github.com/frasern/ai-transcript-copy">GitHub repo</a>.</li>
+    <li>To run it, open the bookmarks menu and tap the bookmark — or type its name in the address bar.</li>
+  </ol>
+
+  <footer>
+    <a href="https://github.com/frasern/ai-transcript-copy">Source on GitHub</a> &mdash; MIT License
+  </footer>
+</body>
+</html>

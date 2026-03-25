@@ -1,7 +1,7 @@
 (()=> {
     const id = 'fen-EA8C8B95';
     
-    const stripMarkdown = (t) => t.replace(/(\*\*|__)(.*?)\1/g, '$2').replace(/(\*|_)(.*?)\1/g, '$2').replace(/~~(.*?)~~/g, '$1').replace(/`{1,3}(.*?)`{1,3}/g, '$1').replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1').replace(/^#+\s+/gm, '');
+    const stripMarkdown = (t) => t.replace(/(\*\*|__)(.*?)\1/g, '$2').replace(/(\*|_)(.*?)\1/g, '$2').replace(/~~(.*?)~~/g, '$1').replace(/`{1,3}(.*?)`{1,3}/g, '$1').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/^#+\s+/gm, '');
     if (document.getElementById(id)) {
         alert(`Dialog #${id} already rendered.`);
         return;
@@ -19,7 +19,7 @@
             c.querySelectorAll('code').forEach((e,i) => e.innerText = '`' + e.innerText + '`');
         } else if (type == 'gemini') {
             c.querySelectorAll('code-block div.code-block-decoration, .cdk-visually-hidden, p.query-text-line br').forEach((e,i) => e.remove());
-            c.querySelectorAll('li').forEach((e,i) => e.innerText = e.innerText);
+            c.querySelectorAll('li').forEach((e,i) => e.innerText = e.innerText); // eslint-disable-line no-self-assign
         }
         return c;
     };
