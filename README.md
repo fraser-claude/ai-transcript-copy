@@ -1,52 +1,36 @@
-# copyGPT
+# AI Transcript Copy
 
-This is a small JavaScript Chrome bookmarklet for copying ChatGPT transcripts to your clipboard with some light Markdown formatting. It works on both desktop and mobile Chrome.
+A bookmarklet that copies AI chat transcripts — ChatGPT, Gemini, NotebookLM, and Claude — to your clipboard as formatted rich text, ready to paste into Google Docs, Obsidian, Notion, or another AI.
 
-[ChatGPT](https://chat.openai.com/) is an incredible demonstration of a large language model. But, as of Dec 11, 2022, it makes copying transcripts really hard, especially on mobile. This simple bookmarklet provides a workaround until ChatGPT introduces a "copy transcript" feature.
+## Install
 
-I designed this against Google Chrome, though it may work with other browsers.
+Visit the **[install page](https://fraser.github.io/ai-transcript-copy/)** and drag the button to your bookmarks bar.
 
-This is similar to [jcubic/chat-gpt](https://github.com/jcubic/chat-gpt), which lets you download the transcript as HTML. The main difference is that copyGPT converts the transcript to Markdown and copies it to your clipboard.
-
-## Features
-
-- Simple, transparent JS bookmarklet for copying ChatGPT transcripts as Markdown.
-  - Handles code blocks.
-- Support for both desktop and mobile Chrome.
-
-## Known Issues
-
-- Fragile: This relies on the current DOM structure of ChatGPT. Changes to the structure may break this bookmarklet. Updates will be reflected but will require manual reinstallation (i.e., updating the URL field of the bookmark with the new JS).
-
-## Installation
-
-- Copy the JavaScript from [copyGPT-markdown.js](copyGPT-markdown.js).
-- On a computer:
-  - [Create a new bookmarket](https://support.google.com/chrome/answer/188842) in Chrome. Name it "copyGPT" and paste the JavaScript into the URL field.
-- On mobile:
-  - If you have [Chrome Sync](https://support.google.com/chrome/answer/185277) enabled:
-    - The bookmark created on your computer will sync to your mobile device if you've configured [Chrome Sync]().
-  - Otherwise: follow the relevant Android, iPhone, or iPad [instructions](https://support.google.com/chrome/answer/188842) to:
-    - Visit any site on mobile and create a new bookmark.
-    - Edit the bookmark to change the name to copyGPT and paste the JavaScript into the URL field.
-    - (As far as I can tell, manually creating a bookmark isn't possible on mobile Chrome. This is a workaround.)
+Make sure your bookmarks bar is visible first: `Ctrl+Shift+B` on Windows/Linux, `Cmd+Shift+B` on Mac.
 
 ## Usage
 
-Use ChatGPT in the usual way. When you have a transcript you'd like to copy on desktop or mobile Chrome:
-- Stay on the ChatGPT tab.
-- Enter `copyGPT` in the Chrome address bar.
-- Select the `copyGPT` suggestion. This executes the JavaScript against the ChatGPT page.
-- Done! The transcript is copied to your clipboard. Paste it in your favourite note-taking tool.
+1. Open a conversation on a supported AI site.
+2. Click the **AI Transcript Copy** bookmark.
+3. A dialog appears — choose which prompt to start copying from.
+4. Click **OK**. Paste into your note-taking tool.
 
-## Demo
+## Supported sites
 
-This demonstrates both installation and usage:
+- ChatGPT (`chatgpt.com`)
+- Gemini (`gemini.google.com`)
+- NotebookLM (`notebooklm.google.com`)
+- Claude (`claude.ai`)
 
-https://user-images.githubusercontent.com/56461/206936469-3285a548-1296-459b-812f-32753e7e7e7b.mov
+## Limitations
+
+- **ChatGPT Deep Research:** Responses are rendered in a sandboxed cross-origin iframe that bookmarklet scripts cannot access. Workaround: use ChatGPT's built-in *Export* or *Copy response* button inside the deep research panel.
+- **Claude Artifacts:** Sidebar artifact content (generated code files, HTML previews, etc.) is rendered in an isolated iframe and cannot be copied. The surrounding chat response text is captured normally.
+- **Gemini Deep Research Citations:** Inline citation markers are stripped from the output because they contain no link or reference text — only a source index number.
+- **Gemini Canvas / NotebookLM Studio:** Canvas-rendered content may not be fully captured if it is displayed outside the standard message elements.
 
 ## Contributing
 
-Pull requests and issues welcome!
+Pull requests and issues welcome! Note that the DOM selectors in `ai-transcript-copy.js` are the most fragile part — they must match the current structure of each AI service and will break when those sites update their HTML.
 
-Note: as far as I can tell, mobile Chrome has a limit of 5000 characters on the URL field. To maintain compatibility with mobile Chrome, change requests which cause the bookmarklet to exceed this limit will be rejected.
+After changing `ai-transcript-copy.js`, run `pnpm run check` and commit the updated `docs/index.html`.

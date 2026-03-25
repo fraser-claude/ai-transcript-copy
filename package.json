@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "lint": "eslint ai-transcript-copy.js copyGPT-markdown.js",
+    "lint": "eslint ai-transcript-copy.js",
     "test": "node --test",
     "build": "node build.mjs",
     "check": "pnpm run lint && pnpm run test && pnpm run build"
