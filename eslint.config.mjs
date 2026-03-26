@@ -19,6 +19,7 @@ export default [
         Number: "readonly",
         Error: "readonly",
         Promise: "readonly",
+        setTimeout: "readonly",
       },
     },
     rules: {

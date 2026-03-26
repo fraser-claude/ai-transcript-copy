@@ -1,11 +1,21 @@
 (()=> {
     const id = 'fen-EA8C8B95';
 
+    const showToast = (msg, type) => {
+        // type: 'error' (red), 'warning' (amber), default (green)
+        const tid = id + '-toast';
+        const existing = document.getElementById(tid);
+        if (existing) existing.remove();
+        const t = document.createElement('div');
+        t.id = tid;
+        t.textContent = msg;
+        const bg = type === 'error' ? '#b00' : type === 'warning' ? '#a06000' : '#2a7f2a';
+        t.style.cssText = `position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:2147483647;padding:10px 16px;border-radius:6px;font:14px sans-serif;color:#fff;background:${bg};box-shadow:0 2px 8px rgba(0,0,0,.3);transition:opacity .4s`;
+        document.body.appendChild(t);
+        setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 2500);
+    };
+
     const stripMarkdown = (t) => t.replace(/(\*\*|__)(.*?)\1/g, '$2').replace(/(\*|_)(.*?)\1/g, '$2').replace(/~~(.*?)~~/g, '$1').replace(/`{1,3}(.*?)`{1,3}/g, '$1').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/^#+\s+/gm, '');
-    if (document.getElementById(id)) {
-        alert(`Dialog #${id} already rendered.`);
-        return;
-    }
 
     const cleanEl = (el, type) => {
         const c = el.cloneNode(true);
@@ -55,43 +65,8 @@
         'claude.ai': ['claude', "div[data-testid='user-message']", '.font-claude-response']
     };
     const cfg = V[location.hostname];
-    if (!cfg) { alert('Unsupported host: ' + location.hostname); return; }
+    if (!cfg) { showToast('❌ Unsupported host: ' + location.hostname, 'error'); return; }
     const [type, qSelector, aSelector] = cfg;
-
-    const pad = '6px';
-    const font = '14px sans-serif';
-    const border = '1px solid #ccc';
-    const colorbg = 'color:#000;background:#fff';
-    const wrap = document.createElement('div');
-    wrap.id = id;
-    wrap.style.cssText = `position:fixed;top:10vh;right:10vw;width:80vw;z-index:2147483647;${colorbg};border:${border};padding:${pad};font:${font}`;
-
-    const label = document.createElement('label');
-    label.textContent='Copy transcript starting with:';
-    label.style.cssText = `display:block;margin-bottom:${pad};font:${font}`;
-
-    const sel = document.createElement('select');
-    sel.style.cssText = `${colorbg};color-scheme:none;padding:${pad};width:75vw;font:${font}`;
-
-    document.querySelectorAll(qSelector).forEach((q,i) => {
-        const o = document.createElement('option');
-        o.value = i;
-        const qc = cleanEl(q, type);
-        o.textContent = `Q${i+1}: ${qc.innerText.substring(0,100)}`;
-        sel.appendChild(o);
-    });
-
-    const buttons = document.createElement('div');
-    buttons.style.cssText = `display:block;margin-top:${pad}`;
-
-    const createButton = (lbl) => {
-        const b = document.createElement('button');
-        b.textContent = lbl;
-        b.style.cssText = `border:${border};padding:${pad};width:120px;${colorbg};font:${font}`;
-        return b;
-    };
-    const ok = createButton('OK');
-    const cancel = createButton('Cancel');
 
     const htmlToText = h => h
         .replace(/<pre[^>]*><code[^>]*>([\s\S]*?)<\/code><\/pre>/gi, '\n```\n$1\n```\n')
@@ -251,22 +226,27 @@
             throw new Error('execCommand copy failed');
         }
     };
-    ok.addEventListener('click',() => {
-        wrap.remove();
-        try {
-            copyTranscriptFrom(sel.value);
-            alert('✅ Transcript copied to clipboard!');
-        } catch (err) {
-            alert('❌ Copy failed. Check console for details.');
-            console.error(err);
-        }
-    });
-    cancel.addEventListener('click',() => wrap.remove());
 
-    wrap.appendChild(label);
-    wrap.appendChild(sel);
-    buttons.appendChild(ok);
-    buttons.appendChild(cancel);
-    wrap.appendChild(buttons);
-    document.body.appendChild(wrap);
+    if (!document.querySelector(qSelector)) {
+        showToast('❌ No questions found on this page.', 'error');
+        return;
+    }
+
+    const warnings = {
+        chatgpt: () => document.querySelector('iframe[title="internal://deep-research"]') ? 'deep research report not included' : null,
+        claude:  () => document.querySelector('[class*="artifact-block"]') ? 'artifact content not included' : null,
+    };
+    const warning = warnings[type]?.();
+
+    try {
+        copyTranscriptFrom(0);
+        if (warning) {
+            showToast('✅ Copied — ⚠️ ' + warning, 'warning');
+        } else {
+            showToast('✅ Transcript copied!');
+        }
+    } catch (err) {
+        showToast('❌ Copy failed. Check console.', 'error');
+        console.error(err);
+    }
 })();
