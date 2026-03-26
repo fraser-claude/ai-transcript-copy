@@ -164,6 +164,7 @@
         const elements = [...document.querySelectorAll(`${qSelector}, ${aSelector}`)];
         const htmlParts = [];
         let qIdx = -1;
+        let aIdx = -1;
         for (let i = 0; i < elements.length; i++) {
             const isQ = elements[i].matches(qSelector);
             if (isQ) qIdx++;
@@ -173,8 +174,17 @@
                     const qTxt = stripMarkdown(c.innerText.replace(/\s+/g,' ').trim());
                     const qTxtAbbr = 100 < qTxt.length ? qTxt.substring(0,100) + '...' : qTxt;
                     const qEl = document.createElement("h2");
-                    qEl.textContent = `Q${qIdx+1} ${qTxtAbbr}`;
+                    qEl.textContent = `Q${qIdx+1}: ${qTxtAbbr}`;
                     htmlParts.push(qEl.outerHTML);
+                } else {
+                    aIdx++;
+                    const isDeepResearch = !!elements[i].closest('deep-research-immersive-panel');
+                    const aLabel = isDeepResearch
+                        ? `A${aIdx+1}: Deep Research \u2014 ${document.querySelector('deep-research-immersive-panel toolbar')?.innerText?.trim().split('\n')[0] || 'Deep Research'}`
+                        : `A${aIdx+1}`;
+                    const aEl = document.createElement("h2");
+                    aEl.textContent = aLabel;
+                    htmlParts.push(aEl.outerHTML);
                 }
 
                 const hdrs = [...c.querySelectorAll('h1,h2,h3,h4,h5')];
@@ -187,7 +197,25 @@
                     });
                 }
                 htmlParts.push(c.innerHTML);
-                if (isQ) htmlParts.push(`<p><b>-------------</b></p>`);
+            }
+        }
+        if (type === 'gemini') {
+            const codePanel = document.querySelector('code-immersive-panel');
+            if (codePanel) {
+                const canvasTitle = codePanel.querySelector('toolbar')?.innerText?.trim().split('\n')[0] || 'Canvas';
+                const canvasContent = window.monaco?.editor?.getModels?.()?.[0]?.getValue?.()
+                    || codePanel.querySelector('textarea')?.value || '';
+                if (canvasContent) {
+                    aIdx++;
+                    const aEl = document.createElement("h2");
+                    aEl.textContent = `A${aIdx+1}: Canvas \u2014 ${canvasTitle}`;
+                    const pre = document.createElement('pre');
+                    const code = document.createElement('code');
+                    code.textContent = canvasContent;
+                    pre.appendChild(code);
+                    htmlParts.push(aEl.outerHTML);
+                    htmlParts.push(pre.outerHTML);
+                }
             }
         }
         const title = type == 'gemini'
