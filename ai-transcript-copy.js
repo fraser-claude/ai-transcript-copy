@@ -111,6 +111,54 @@
         .replace(/\n{3,}/g, '\n\n')
         .trim();
 
+    const getModel = (type) => {
+        if (type === 'gemini') {
+            const btn = document.querySelector('[data-test-id="bard-mode-menu-button"]');
+            btn?.click();
+            const title = document.querySelector('[data-test-id="bard-mode-menu-title"]')?.innerText?.trim() || 'Gemini';
+            const selected = document.querySelector('.bard-mode-list-button.is-selected');
+            const modeName = selected?.querySelector('.mode-title')?.innerText?.trim() || '';
+            const modeDesc = selected?.querySelector('.mode-desc')?.innerText?.trim() || '';
+            btn?.click();
+            const proMatch = modeDesc.match(/(\d+\.\d+ Pro)/);
+            if (proMatch) return `Gemini ${proMatch[1]}`;
+            return modeName ? `${title} ${modeName}` : title;
+        }
+        const selectors = {
+            chatgpt: ['[data-message-model-slug]',
+                      'button[data-testid="model-switcher-dropdown-button"]'],
+            claude:  ['button[data-testid="model-selector-dropdown"]'],
+            notebooklm: [],
+        }[type] || [];
+        const fallback = { chatgpt:'ChatGPT', claude:'Claude', notebooklm:'NotebookLM' }[type] || type;
+        for (const s of selectors) {
+            const el = document.querySelector(s);
+            const text = (el?.dataset?.messageModelSlug || el?.textContent)?.trim();
+            if (text) return text;
+        }
+        return fallback;
+    };
+
+    const getFirstResponseDate = (aSelector) => {
+        const firstResp = document.querySelector(aSelector);
+        const candidates = [
+            firstResp?.closest('[data-message-id]')?.querySelector('time'),
+            firstResp?.closest('article')?.querySelector('time'),
+            firstResp?.closest('.response-container, [class*="message"]')?.querySelector('time'),
+            document.querySelector(`${aSelector.split(',')[0].trim()} time`),
+        ];
+        for (const el of candidates) {
+            if (el?.dateTime) return new Date(el.dateTime);
+        }
+        return new Date();
+    };
+
+    const formatDate = (d) => {
+        const pad = n => String(n).padStart(2, '0');
+        const tz = d.toLocaleTimeString('en-US', { timeZoneName: 'short' }).split(' ').pop();
+        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())} ${tz}`;
+    };
+
     const copyTranscriptFrom = (qStartIdx) => {
         qStartIdx = Number(qStartIdx);
         const elements = [...document.querySelectorAll(`${qSelector}, ${aSelector}`)];
@@ -147,10 +195,19 @@
             : document.title;
         const titleEl = document.createElement("h1");
         titleEl.textContent = stripMarkdown(title);
-        const locationEl = document.createElement("p");
-        locationEl.textContent = location.href;
+        const sourceLink = document.createElement("a");
+        sourceLink.href = location.href;
+        sourceLink.textContent = location.href;
+        const sourceLi = document.createElement("li");
+        sourceLi.append("Source: ", sourceLink);
+        const modelLi = document.createElement("li");
+        modelLi.textContent = `Model: ${getModel(type)}`;
+        const dateLi = document.createElement("li");
+        dateLi.textContent = `Date: ${formatDate(getFirstResponseDate(aSelector))}`;
+        const metaUl = document.createElement("ul");
+        metaUl.append(sourceLi, modelLi, dateLi);
         if (qStartIdx == 0) {
-            htmlParts.unshift(`${titleEl.outerHTML}${locationEl.outerHTML}`);
+            htmlParts.unshift(`${titleEl.outerHTML}${metaUl.outerHTML}`);
         }
         const html = htmlParts.join('\n\n');
         function onCopy(e) {
