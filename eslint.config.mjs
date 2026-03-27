@@ -3,10 +3,14 @@ import js from "@eslint/js";
 export default [
   js.configs.recommended,
   {
-    files: ["*.js"],
+    files: ["src/*.js"],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "script",
+      parserOptions: {
+        // Allow top-level return (entry files use it; valid inside the build-time IIFE wrapper)
+        ecmaFeatures: { globalReturn: true },
+      },
       globals: {
         document: "readonly",
         window: "readonly",
@@ -22,6 +26,23 @@ export default [
         Error: "readonly",
         Promise: "readonly",
         setTimeout: "readonly",
+        parseInt: "readonly",
+        Map: "readonly",
+        Set: "readonly",
+        Object: "readonly",
+        // Cross-file names: defined in one src/ file, referenced in another after concatenation
+        id: "readonly",
+        showToast: "readonly",
+        stripMarkdown: "readonly",
+        htmlToText: "readonly",
+        formatDate: "readonly",
+        getModel: "readonly",
+        writeTranscript: "readonly",
+        copyChatGPTTranscript: "readonly",
+        copyGeminiTranscript: "readonly",
+        copyNotebookLMTranscript: "readonly",
+        copyClaudeTranscript: "readonly",
+        demoteHeadings: "readonly",
       },
     },
     rules: {
