@@ -6,11 +6,11 @@ const V = {
     'claude.ai': ['claude', "div[data-testid='user-message']", '.font-claude-response']
 };
 const cfg = V[location.hostname];
-if (!cfg) { showToast('❌ Unsupported host: ' + location.hostname, 'error'); return; }
+if (!cfg) { showToast('Unsupported host: ' + location.hostname, 'error'); return; }
 const [type, qSelector, aSelector] = cfg;
 
 if (!document.querySelector(qSelector)) {
-    showToast('❌ No questions found on this page.', 'error');
+    showToast('No questions found on this page.', 'error');
     return;
 }
 
@@ -18,9 +18,9 @@ const warning = type === 'chatgpt' && document.querySelector('iframe[title="inte
     ? 'deep research report not included' : null;
 
 const copyFns = { chatgpt: copyChatGPTTranscript, gemini: copyGeminiTranscript, notebooklm: copyNotebookLMTranscript, claude: copyClaudeTranscript };
-copyFns[type](qSelector, aSelector, 0).then(() => {
-    showToast(warning ? '✅ Copied — ⚠️ ' + warning : '✅ Transcript copied!', warning ? 'warning' : undefined);
+void copyFns[type](qSelector, aSelector, 0).then(() => {
+    showToast(warning ? 'Copied. ' + warning : 'Transcript copied!', warning ? 'warning' : undefined);
 }).catch(err => {
-    showToast('❌ Copy failed. Check console.', 'error');
+    showToast('Copy failed. Check console.', 'error');
     console.error(err);
 });
