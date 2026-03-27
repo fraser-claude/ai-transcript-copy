@@ -13,9 +13,11 @@ These bookmarklets copy AI chat transcripts from ChatGPT, Gemini, NotebookLM, an
 For example:
 
 ```markdown
-# Transcript Title
+# <Transcript Title>
 
-## Q1: abbreviated user message
+[context: link to conversation, model, time]
+
+## Q1: <abbreviated user message>
 
 [full user message]
 
@@ -23,7 +25,7 @@ For example:
 
 [assistant message]
 
-## Q1: abbreviated user message
+## Q2: <abbreviated user message>
 
 [full user message]
 
@@ -38,7 +40,7 @@ For example:
 
 Two versions are provided:
 
-- Full: Supports as many chat features as possible without worrying about bookmarklet size.
+- Standard: Supports as many chat features as possible without worrying about bookmarklet size.
 - Basic: basic user/assistant messages, maintaining a small size and feature set for compatibility with mobile OSes and sites. (It seems a bookmark > 6k bytes won't sync to iOS Chrome.)
 
 ## Why a bookmarklet instead of an extension?
@@ -55,8 +57,6 @@ Make sure your bookmarks bar is visible first: `Ctrl+Shift+B` on Windows/Linux, 
 
 1. Open a conversation in a supported Claude, Gemini, etc. chat.
 2. Click the **AI Transcript Copy** bookmark.
-3. A dialog appears — choose which prompt to start copying from.
-4. Click **OK**. Paste into your note-taking tool.
 
 ## Supported sites
 
@@ -67,6 +67,7 @@ Make sure your bookmarks bar is visible first: `Ctrl+Shift+B` on Windows/Linux, 
 
 ## Known Limitations
 
+- **Fragile:** This will break if (when) vendors change their chat DOM structure. But, as long as I'm using it I'll keep it updated. Please file issues if it breaks.
 - **ChatGPT Deep Research:** Responses are rendered in a sandboxed cross-origin iframe that bookmarklet scripts cannot access. Workaround: use ChatGPT's built-in *Export* or *Copy response* button inside the deep research panel.
 
 
