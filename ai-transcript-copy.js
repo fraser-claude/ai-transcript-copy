@@ -113,45 +113,19 @@
         .trim();
 
     const getModel = (type) => {
-        if (type === 'gemini') {
-            const btn = document.querySelector('[data-test-id="bard-mode-menu-button"]');
-            btn?.click();
-            const title = document.querySelector('[data-test-id="bard-mode-menu-title"]')?.innerText?.trim() || 'Gemini';
-            const selected = document.querySelector('.bard-mode-list-button.is-selected');
-            const modeName = selected?.querySelector('.mode-title')?.innerText?.trim() || '';
-            const modeDesc = selected?.querySelector('.mode-desc')?.innerText?.trim() || '';
-            btn?.click();
-            const proMatch = modeDesc.match(/(\d+\.\d+ Pro)/);
-            if (proMatch) return `Gemini ${proMatch[1]}`;
-            return modeName ? `${title} ${modeName}` : title;
-        }
+        const vendorName = { chatgpt: 'ChatGPT', claude: 'Claude', gemini: 'Gemini', notebooklm: 'NotebookLM' }[type] || type;
         const selectors = {
-            chatgpt: ['[data-message-model-slug]',
-                      'button[data-testid="model-switcher-dropdown-button"]'],
+            chatgpt: ['button[data-testid="model-switcher-dropdown-button"]', '[data-message-model-slug]'],
             claude:  ['button[data-testid="model-selector-dropdown"]'],
-            notebooklm: [],
+            gemini:  ['[data-test-id="bard-mode-menu-button"]'],
         }[type] || [];
-        const fallback = { chatgpt:'ChatGPT', claude:'Claude', notebooklm:'NotebookLM' }[type] || type;
         for (const s of selectors) {
             const el = document.querySelector(s);
             const text = (el?.dataset?.messageModelSlug || el?.textContent)?.trim();
-            if (text) return text;
+            if (!text) continue;
+            return text.startsWith(vendorName) ? text : `${vendorName} ${text}`;
         }
-        return fallback;
-    };
-
-    const getFirstResponseDate = (aSelector) => {
-        const firstResp = document.querySelector(aSelector);
-        const candidates = [
-            firstResp?.closest('[data-message-id]')?.querySelector('time'),
-            firstResp?.closest('article')?.querySelector('time'),
-            firstResp?.closest('.response-container, [class*="message"]')?.querySelector('time'),
-            document.querySelector(`${aSelector.split(',')[0].trim()} time`),
-        ];
-        for (const el of candidates) {
-            if (el?.dateTime) return new Date(el.dateTime);
-        }
-        return new Date();
+        return vendorName;
     };
 
     const formatDate = (d) => {
@@ -386,7 +360,7 @@
         const modelLi = document.createElement("li");
         modelLi.textContent = `Model: ${getModel(type)}`;
         const dateLi = document.createElement("li");
-        dateLi.textContent = `Date: ${formatDate(getFirstResponseDate(aSelector))}`;
+        dateLi.textContent = `Date: ${formatDate(new Date())}`;
         const metaUl = document.createElement("ul");
         metaUl.append(sourceLi, modelLi, dateLi);
         if (qStartIdx == 0) {
