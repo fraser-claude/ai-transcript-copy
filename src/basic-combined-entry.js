@@ -41,6 +41,6 @@ const title = document.querySelector("span[data-test-id='conversation-title']")?
 void writeTranscript(htmlParts, title, vendor, 0).then(() => {
     showToast('Basic transcript copied!');
 }).catch(err => {
-    showToast('Copy failed. Check console.', 'error');
+    showToast('Copy failed: ' + err.message, 'error');
     console.error(err);
 });

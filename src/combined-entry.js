@@ -21,6 +21,6 @@ const copyFns = { chatgpt: copyChatGPTTranscript, gemini: copyGeminiTranscript, 
 void copyFns[type](qSelector, aSelector, 0).then(() => {
     showToast(warning ? 'Copied. ' + warning : 'Transcript copied!', warning ? 'warning' : undefined);
 }).catch(err => {
-    showToast('Copy failed. Check console.', 'error');
+    showToast('Copy failed: ' + err.message, 'error');
     console.error(err);
 });

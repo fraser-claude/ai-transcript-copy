@@ -9,7 +9,7 @@ const showToast = (msg, type) => {
     t.id = tid;
     t.textContent = msg;
     const bg = type === 'error' ? '#b00' : type === 'warning' ? '#a06000' : '#2a7f2a';
-    t.style.cssText = `position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:2147483647;padding:10px 16px;border-radius:6px;font:14px sans-serif;color:#fff;background:${bg};box-shadow:0 2px 8px rgba(0,0,0,.3);transition:opacity .4s;white-space:nowrap;max-width:90vw`;
+    t.style.cssText = `position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:2147483647;padding:10px 16px;border-radius:6px;font:14px sans-serif;color:#fff;background:${bg};box-shadow:0 2px 8px rgba(0,0,0,.3);transition:opacity .4s;max-width:90vw;word-break:break-word`;
     document.body.appendChild(t);
     setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 2500);
 };
@@ -66,8 +66,11 @@ const demoteHeadings = (el, by) => {
 };
 
 const writeTranscript = async (htmlParts, title, vendorType, startIdx) => {
+    const now = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const dateStamp = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
     const titleEl = document.createElement("h1");
-    titleEl.textContent = stripMarkdown(title);
+    titleEl.textContent = `${dateStamp} - ${stripMarkdown(title)}`;
     const sourceLink = document.createElement("a");
     sourceLink.href = location.href;
     sourceLink.textContent = location.href;
