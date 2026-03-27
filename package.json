@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "lint": "eslint ai-transcript-copy.js",
-    "test": "node --test",
+    "test": "node --test 'test/**/*.mjs'",
     "build": "node build.mjs",
     "check": "pnpm run lint && pnpm run test && pnpm run build"
   },

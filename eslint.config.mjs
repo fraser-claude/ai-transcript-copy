@@ -15,6 +15,8 @@ export default [
         console: "readonly",
         navigator: "readonly",
         ClipboardItem: "readonly",
+        MutationObserver: "readonly",
+        Blob: "readonly",
         Array: "readonly",
         Number: "readonly",
         Error: "readonly",

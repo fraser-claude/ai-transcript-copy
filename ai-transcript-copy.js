@@ -17,6 +17,33 @@
 
     const stripMarkdown = (t) => t.replace(/(\*\*|__)(.*?)\1/g, '$2').replace(/(\*|_)(.*?)\1/g, '$2').replace(/~~(.*?)~~/g, '$1').replace(/`{1,3}(.*?)`{1,3}/g, '$1').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/^#+\s+/gm, '');
 
+    const buildArtifactMap = () => {
+        const map = new Map();
+        const anyBlock = document.querySelector('.artifact-block-cell');
+        if (!anyBlock) return map;
+        const fiberKey = Object.keys(anyBlock).find(k => k.startsWith('__reactFiber'));
+        if (!fiberKey) return map;
+        let node = anyBlock[fiberKey];
+        while (node) {
+            const store = node.memoizedProps?.store;
+            if (store) {
+                for (const tl of (store.getState().timelines || [])) {
+                    for (const b of (tl.blocks || [])) {
+                        if (b.type === 'tool_use' && b.name === 'create_file' && b.input?.path && b.input?.file_text) {
+                            const name = b.input.path.split('/').pop();
+                            const ext = name.includes('.') ? name.split('.').pop().toLowerCase() : '';
+                            const extLang = { js:'javascript', ts:'typescript', tsx:'typescript', jsx:'javascript', html:'html', css:'css', py:'python', json:'json', md:'markdown', sh:'bash', rb:'ruby', java:'java', go:'go', rs:'rust', cpp:'cpp', cc:'cpp', c:'c' };
+                            map.set(b.input.path, { name, content: b.input.file_text, lang: extLang[ext] || ext });
+                        }
+                    }
+                }
+                break;
+            }
+            node = node.return;
+        }
+        return map;
+    };
+
     const cleanEl = (el, type) => {
         const c = el.cloneNode(true);
         c.querySelectorAll('button').forEach(e => e.remove());
@@ -51,8 +78,7 @@
                 const wrapper = pre.closest('.group\\/copy');
                 if (wrapper) wrapper.replaceWith(pre);
             });
-            // Remove artifact-block references (content is in inaccessible iframe)
-            c.querySelectorAll('[class*="artifact-block"]').forEach(e => e.remove());
+            // Artifact replacement is handled async in copyTranscriptFrom
         }
         return c;
     };
@@ -60,7 +86,7 @@
     window.getSelection().removeAllRanges();
     const V = {
         'chatgpt.com':  ['chatgpt', "div[data-message-author-role='user']", "div[data-message-author-role='assistant']"],
-        'gemini.google.com': ['gemini', 'user-query .query-text', 'model-response message-content, #extended-response-message-content'],
+        'gemini.google.com': ['gemini', 'user-query .query-text', 'model-response message-content'],
         'notebooklm.google.com': ['notebooklm', '.from-user-message-inner-content', '.to-user-message-inner-content'],
         'claude.ai': ['claude', "div[data-testid='user-message']", '.font-claude-response']
     };
@@ -134,9 +160,117 @@
         return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())} ${tz}`;
     };
 
-    const copyTranscriptFrom = (qStartIdx) => {
+    const openResearchArtifact = (cell) => new Promise((resolve, reject) => {
+        const process = () => {
+            const md = document.querySelector('#markdown-artifact');
+            const c = md.cloneNode(true);
+            // Replace citation pills with [N] / [N+extra] superscripts
+            const urlMap = new Map();
+            let citNum = 0;
+            c.querySelectorAll('span.inline-flex[data-state]').forEach(wrapper => {
+                const a = wrapper.querySelector('a[href]');
+                if (!a) return;
+                const url = a.href;
+                const plusMatch = a.innerText.match(/\+(\d+)$/);
+                const extra = plusMatch ? parseInt(plusMatch[1]) : 0;
+                if (!urlMap.has(url)) urlMap.set(url, ++citNum);
+                const n = urlMap.get(url);
+                const sup = document.createElement('sup');
+                sup.textContent = extra ? `[${n}+${extra}]` : `[${n}]`;
+                wrapper.replaceWith(sup);
+            });
+            // Strip class attributes (removes Claude's Tailwind styling)
+            c.querySelectorAll('[class]').forEach(e => e.removeAttribute('class'));
+            // Demote headings +2 (h1→h3, h2→h4, cap at h6)
+            [...c.querySelectorAll('h1,h2,h3,h4,h5,h6')].reverse().forEach(h => {
+                const lv = Math.min(parseInt(h.tagName[1]) + 2, 6);
+                const nh = document.createElement('h' + lv);
+                while (h.firstChild) nh.appendChild(h.firstChild);
+                h.replaceWith(nh);
+            });
+            // Append Sources section
+            if (urlMap.size > 0) {
+                const sh = document.createElement('h3');
+                sh.textContent = 'Sources';
+                const ol = document.createElement('ol');
+                for (const [url] of urlMap) {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.textContent = url;
+                    li.appendChild(a);
+                    ol.appendChild(li);
+                }
+                c.appendChild(sh);
+                c.appendChild(ol);
+            }
+            resolve({ html: c.innerHTML });
+        };
+        if (document.querySelector('#markdown-artifact')) { process(); return; }
+        cell.click();
+        const obs = new MutationObserver(() => {
+            if (document.querySelector('#markdown-artifact')) { obs.disconnect(); process(); }
+        });
+        obs.observe(document.body, { childList: true, subtree: true });
+        setTimeout(() => reject(new Error('Timed out waiting for #markdown-artifact')), 3000);
+    });
+
+    const openGeminiResearchReport = (el) => new Promise((resolve, reject) => {
+        const process = () => {
+            const panel = document.querySelector('deep-research-immersive-panel');
+            const md = panel.querySelector('.markdown.markdown-main-panel');
+            const c = md.cloneNode(true);
+            // Replace source-footnotes with [N] superscripts
+            c.querySelectorAll('source-footnote').forEach(fn => {
+                const idx = fn.querySelector('sup[data-turn-source-index]')?.getAttribute('data-turn-source-index');
+                const sup = document.createElement('sup');
+                if (idx) { sup.textContent = `[${idx}]`; fn.replaceWith(sup); }
+                else fn.remove();
+            });
+            // Remove carousel chrome
+            c.querySelectorAll('sources-carousel-inline, source-inline-chip, overview-carousel').forEach(e => e.remove());
+            // Demote headings +2 (h1→h3, h2→h4, cap at h6)
+            [...c.querySelectorAll('h1,h2,h3,h4,h5,h6')].reverse().forEach(h => {
+                const lv = Math.min(parseInt(h.tagName[1]) + 2, 6);
+                const nh = document.createElement('h' + lv);
+                while (h.firstChild) nh.appendChild(h.firstChild);
+                h.replaceWith(nh);
+            });
+            // Build Sources section (position N in list = citation index N)
+            const seen = new Set();
+            const sourceLinks = [...panel.querySelectorAll('div.source-list.used-sources browse-web-item a[href]')]
+                .map(a => a.href).filter(url => !seen.has(url) && seen.add(url));
+            if (sourceLinks.length > 0) {
+                const sh = document.createElement('h3');
+                sh.textContent = 'Sources';
+                const ol = document.createElement('ol');
+                for (const url of sourceLinks) {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.href = url; a.textContent = url;
+                    li.appendChild(a); ol.appendChild(li);
+                }
+                c.appendChild(sh); c.appendChild(ol);
+            }
+            resolve({ node: c });
+        };
+        if (document.querySelector('deep-research-immersive-panel .markdown.markdown-main-panel')) { process(); return; }
+        const chipContent = el.querySelector('deep-research-entry-chip-content')
+            || document.querySelector('deep-research-entry-chip-content');
+        chipContent?.click();
+        const obs = new MutationObserver(() => {
+            if (document.querySelector('deep-research-immersive-panel .markdown.markdown-main-panel')) {
+                obs.disconnect(); process();
+            }
+        });
+        obs.observe(document.body, { childList: true, subtree: true });
+        setTimeout(() => reject(new Error('Timed out waiting for deep-research-immersive-panel')), 3000);
+    });
+
+    const copyTranscriptFrom = async (qStartIdx) => {
         qStartIdx = Number(qStartIdx);
         const elements = [...document.querySelectorAll(`${qSelector}, ${aSelector}`)];
+        const artifactMap = type === 'claude' ? buildArtifactMap() : null;
         const htmlParts = [];
         let qIdx = -1;
         let aIdx = -1;
@@ -144,6 +278,56 @@
             const isQ = elements[i].matches(qSelector);
             if (isQ) qIdx++;
             const c = cleanEl(elements[i], type);
+            if (type === 'claude') {
+                const origCells = [...elements[i].querySelectorAll('.artifact-block-cell')];
+                const cloneCells = [...c.querySelectorAll('.artifact-block-cell')];
+                for (let j = 0; j < origCells.length; j++) {
+                    const cloneCell = cloneCells[j];
+                    if (!cloneCell) continue;
+                    const fiberKey = Object.keys(origCells[j]).find(k => k.startsWith('__reactFiber'));
+                    let artifact = null;
+                    if (fiberKey) {
+                        let node = origCells[j][fiberKey];
+                        while (node) {
+                            const props = node.memoizedProps;
+                            if (props?.properties?.id) {
+                                const p = props.properties;
+                                if (p.type === 'text/markdown') {
+                                    artifact = await openResearchArtifact(origCells[j]);
+                                } else if (p.content) {
+                                    const atype = p.type || '';
+                                    artifact = { content: p.content, lang: atype.split('/').pop() || '' };
+                                } else {
+                                    artifact = artifactMap?.get(p.id) || null;
+                                }
+                                break;
+                            }
+                            node = node.return;
+                        }
+                    }
+                    if (artifact?.html !== undefined) {
+                        const div = document.createElement('div');
+                        div.innerHTML = artifact.html;
+                        cloneCell.replaceWith(div);
+                    } else if (artifact) {
+                        const pre = document.createElement('pre');
+                        const code = document.createElement('code');
+                        if (artifact.lang) code.className = 'language-' + artifact.lang;
+                        code.textContent = artifact.content;
+                        pre.appendChild(code);
+                        cloneCell.replaceWith(pre);
+                    } else {
+                        (cloneCell.closest('[class*="artifact-block"]') || cloneCell).remove();
+                    }
+                }
+            }
+            if (type === 'gemini') {
+                const cloneChip = c.querySelector('immersive-entry-chip');
+                if (cloneChip && elements[i].querySelector('deep-research-entry-chip-content')) {
+                    const result = await openGeminiResearchReport(elements[i]);
+                    cloneChip.replaceWith(result.node);
+                }
+            }
             if (qStartIdx <= qIdx) {
                 if (isQ) {
                     const qTxt = stripMarkdown(c.innerText.replace(/\s+/g,' ').trim());
@@ -153,12 +337,8 @@
                     htmlParts.push(qEl.outerHTML);
                 } else {
                     aIdx++;
-                    const isDeepResearch = !!elements[i].closest('deep-research-immersive-panel');
-                    const aLabel = isDeepResearch
-                        ? `A${aIdx+1}: Deep Research \u2014 ${document.querySelector('deep-research-immersive-panel toolbar')?.innerText?.trim().split('\n')[0] || 'Deep Research'}`
-                        : `A${aIdx+1}`;
                     const aEl = document.createElement("h2");
-                    aEl.textContent = aLabel;
+                    aEl.textContent = `A${aIdx+1}`;
                     htmlParts.push(aEl.outerHTML);
                 }
 
@@ -213,18 +393,12 @@
             htmlParts.unshift(`${titleEl.outerHTML}${metaUl.outerHTML}`);
         }
         const html = htmlParts.join('\n\n');
-        function onCopy(e) {
-            e.clipboardData.setData('text/html', html);
-            e.clipboardData.setData('text/plain', htmlToText(html));
-            e.preventDefault();
-        }
-
-        document.addEventListener('copy', onCopy, { once: true });
-        const successful = document.execCommand('copy');
-        if (!successful) {
-            document.removeEventListener('copy', onCopy);
-            throw new Error('execCommand copy failed');
-        }
+        await navigator.clipboard.write([
+            new ClipboardItem({
+                'text/html': new Blob([html], { type: 'text/html' }),
+                'text/plain': new Blob([htmlToText(html)], { type: 'text/plain' }),
+            })
+        ]);
     };
 
     if (!document.querySelector(qSelector)) {
@@ -234,19 +408,17 @@
 
     const warnings = {
         chatgpt: () => document.querySelector('iframe[title="internal://deep-research"]') ? 'deep research report not included' : null,
-        claude:  () => document.querySelector('[class*="artifact-block"]') ? 'artifact content not included' : null,
     };
     const warning = warnings[type]?.();
 
-    try {
-        copyTranscriptFrom(0);
+    copyTranscriptFrom(0).then(() => {
         if (warning) {
             showToast('✅ Copied — ⚠️ ' + warning, 'warning');
         } else {
             showToast('✅ Transcript copied!');
         }
-    } catch (err) {
+    }).catch(err => {
         showToast('❌ Copy failed. Check console.', 'error');
         console.error(err);
-    }
+    });
 })();
