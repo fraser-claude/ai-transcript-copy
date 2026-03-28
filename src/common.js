@@ -20,6 +20,8 @@ const htmlToText = h => {
     const codes = [];
     return h
         .replace(/<pre[^>]*><code[^>]*>([\s\S]*?)<\/code><\/pre>/gi, (_, c) => '\n\n\uE000' + (codes.push(c.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")) - 1) + '\uE000\n\n')
+        .replace(/<blockquote[^>]*>/gi, '\uE001')
+        .replace(/<\/blockquote>/gi, '\uE002')
         .replace(/<h([1-6])[^>]*>(.*?)<\/h\1>/gi, (m,n,t) => '\n\n'+'#'.repeat(+n)+' '+t+'\n\n')
         .replace(/<code[^>]*>(.*?)<\/code>/gi, '`$1`')
         .replace(/<a[^>]+href="([^"]*)"[^>]*>(.*?)<\/a>/gi, (m,href,txt) => txt ? '['+txt+']('+href+')' : href)
@@ -46,6 +48,7 @@ const htmlToText = h => {
         .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
         .replace(/[ \t]*\n[ \t]*/g, '\n')
         .replace(/\n{3,}/g, '\n\n')
+        .replace(/\uE001([\s\S]*?)\uE002/g, (_, inner) => inner.trim().split('\n').map(l => l ? '> ' + l : '>').join('\n'))
         .trim()
         .replace(/\uE000(\d+)\uE000/g, (_, i) => '```\n' + codes[+i] + '\n```');
 };

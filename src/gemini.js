@@ -98,7 +98,7 @@ const copyGeminiTranscript = async (qSelector, aSelector, startIdx) => {
                 htmlParts.push(aEl.outerHTML);
             }
             if (c.querySelector('h1,h2')) demoteHeadings(c, 1);
-            htmlParts.push(c.innerHTML);
+            htmlParts.push(isQ ? `<blockquote>${c.innerHTML}</blockquote>` : c.innerHTML);
         }
     }
     const codePanel = document.querySelector('code-immersive-panel');

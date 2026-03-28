@@ -27,7 +27,7 @@ const copyNotebookLMTranscript = async (qSelector, aSelector, startIdx) => {
                 htmlParts.push(aEl.outerHTML);
             }
             if (c.querySelector('h1,h2')) demoteHeadings(c, 1);
-            htmlParts.push(c.innerHTML);
+            htmlParts.push(isQ ? `<blockquote>${c.innerHTML}</blockquote>` : c.innerHTML);
         }
     }
     await writeTranscript(htmlParts, document.title, 'notebooklm', startIdx);
