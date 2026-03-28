@@ -33,6 +33,16 @@ const cleanElClaude = (el) => {
         const wrapper = pre.closest('.group\\/copy');
         if (wrapper) wrapper.replaceWith(pre);
     });
+    // Replace KaTeX math with $...$ / $$...$$ using LaTeX source from MathML annotation
+    c.querySelectorAll('.katex').forEach(el => {
+        const annotation = el.querySelector('annotation[encoding="application/x-tex"]');
+        if (!annotation) return;
+        const latex = annotation.textContent.trim();
+        const isBlock = !!el.closest('.katex-display');
+        const span = document.createElement('span');
+        span.textContent = isBlock ? `$$${latex}$$` : `$${latex}$`;
+        (el.closest('.katex-display') || el).replaceWith(span);
+    });
     // Artifact replacement is handled async below
     return c;
 };
