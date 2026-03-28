@@ -99,8 +99,11 @@ const writeTranscript = async (htmlParts, title, vendorType, startIdx) => {
     modelLi.textContent = `Model: ${getModel(vendorType)}`;
     const dateLi = document.createElement("li");
     dateLi.textContent = `Date: ${formatDate(new Date())}`;
+    const vendorNames = { chatgpt: "ChatGPT", claude: "Claude", gemini: "Gemini", notebooklm: "NotebookLM" };
+    const formatLi = document.createElement("li");
+    formatLi.textContent = `This is a transcript between the user (Q{n} headers) and ${vendorNames[vendorType] || vendorType} (A{n} headers)`;
     const metaUl = document.createElement("ul");
-    metaUl.append(sourceLi, modelLi, dateLi);
+    metaUl.append(sourceLi, modelLi, dateLi, formatLi);
     if (startIdx == 0) {
         htmlParts.unshift(`${titleEl.outerHTML}${metaUl.outerHTML}`);
     }
