@@ -20,18 +20,27 @@ const htmlToText = h => {
     const codes = [];
     return h
         .replace(/<pre[^>]*><code[^>]*>([\s\S]*?)<\/code><\/pre>/gi, (_, c) => '\n\n\uE000' + (codes.push(c.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")) - 1) + '\uE000\n\n')
-        .replace(/<h([1-6])[^>]*>(.*?)<\/h\1>/gi, (m,n,t) => '#'.repeat(+n)+' '+t+'\n\n')
+        .replace(/<h([1-6])[^>]*>(.*?)<\/h\1>/gi, (m,n,t) => '\n\n'+'#'.repeat(+n)+' '+t+'\n\n')
         .replace(/<code[^>]*>(.*?)<\/code>/gi, '`$1`')
         .replace(/<a[^>]+href="([^"]*)"[^>]*>(.*?)<\/a>/gi, (m,href,txt) => txt ? '['+txt+']('+href+')' : href)
         .replace(/<hr\s*\/?>/gi, '\n---\n')
-        .replace(/<tr[^>]*>([\s\S]*?)<\/tr>/gi, (m,cells) => cells.replace(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi, (_,c) => c.trim()+' | ').trimEnd().replace(/\|\s*$/, '')+'\n')
-        .replace(/<\/?(?:table|thead|tbody|tfoot)[^>]*>/gi, '\n')
+        .replace(/<thead[^>]*>([\s\S]*?)<\/thead>/gi, (_, inner) => inner.replace(/<tr/gi, '<tr data-th'))
+        .replace(/<\/?(?:thead|tbody|tfoot)[^>]*>/gi, '')
+        .replace(/<\/?table[^>]*>/gi, '\n')
+        .replace(/<tr([^>]*)>([\s\S]*?)<\/tr>/gi, (_, attrs, cells) => {
+            const isHeader = /data-th/.test(attrs) || /<th[\s>]/i.test(cells);
+            const row = cells.replace(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi, (_,c) => c.trim()+' | ').trimEnd().replace(/\|\s*$/, '');
+            if (isHeader) { const cols = (row.match(/\|/g) || []).length + 1; return row + '\n' + Array(cols).fill('---').join(' | ') + '\n'; }
+            return row + '\n';
+        })
+        .replace(/<li[^>]*>\s*<p[^>]*>/gi, '<li>')
         .replace(/<li[^>]*>/gi, '\n- ')
         .replace(/<br\s*\/?>/gi, '\n')
         .replace(/<\/p>/gi, '\n\n')
         .replace(/<p[^>]*>/gi, '\n\n')
         .replace(/<\/?(b|strong)\b[^>]*>/gi, '**')
         .replace(/<\/?(i|em)\b[^>]*>/gi, '*')
+        .replace(/<\/div>/gi, '\n')
         .replace(/<[^>]+>/g, '')
         .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
         .replace(/[ \t]*\n[ \t]*/g, '\n')

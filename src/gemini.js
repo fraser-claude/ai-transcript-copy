@@ -14,7 +14,8 @@ const cleanElGemini = (el) => {
             if (code && !code.className) code.className = 'language-' + lang;
         }
     });
-    c.querySelectorAll('code-block div.code-block-decoration, .cdk-visually-hidden, p.query-text-line br, source-footnote, sources-carousel-inline, source-inline-chip, overview-carousel').forEach(e => e.remove());
+    c.querySelectorAll('code-block div.code-block-decoration, .cdk-visually-hidden, p.query-text-line br, source-footnote, sources-carousel-inline, source-inline-chip, overview-carousel, [hide-from-message-actions]').forEach(e => e.remove());
+    c.querySelectorAll('[data-math]').forEach(e => { const tex = e.getAttribute('data-math'); e.textContent = e.tagName === 'DIV' ? '$$' + tex + '$$' : '$' + tex + '$'; });
     c.querySelectorAll('li').forEach(e => e.innerText = e.innerText); // eslint-disable-line no-self-assign
     return c;
 };
@@ -31,8 +32,10 @@ const openGeminiResearchReport = (el) => new Promise((resolve, reject) => {
             if (idx) { sup.textContent = `[${idx}]`; fn.replaceWith(sup); }
             else fn.remove();
         });
-        // Remove carousel chrome
-        c.querySelectorAll('sources-carousel-inline, source-inline-chip, overview-carousel').forEach(e => e.remove());
+        // Remove carousel chrome and UI chrome (e.g. "Export to Sheets")
+        c.querySelectorAll('sources-carousel-inline, source-inline-chip, overview-carousel, [hide-from-message-actions]').forEach(e => e.remove());
+        // Replace rendered math with LaTeX source text
+        c.querySelectorAll('[data-math]').forEach(e => { const tex = e.getAttribute('data-math'); e.textContent = e.tagName === 'DIV' ? '$$' + tex + '$$' : '$' + tex + '$'; });
         // Demote headings +2 (h1→h3, h2→h4, cap at h6)
         demoteHeadings(c, 2);
         // Build Sources section (position N in list = citation index N)
