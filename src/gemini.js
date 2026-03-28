@@ -4,6 +4,7 @@ const cleanElGemini = (el) => {
     c.querySelectorAll('pre code').forEach((cloneCode, i) => {
         if (origCodes[i]) cloneCode.textContent = origCodes[i].innerText;
     });
+    c.querySelectorAll('button img').forEach(img => img.closest('button').replaceWith(img));
     c.querySelectorAll('button').forEach(e => e.remove());
     // Preserve language label before removing decoration
     c.querySelectorAll('code-block').forEach(cb => {

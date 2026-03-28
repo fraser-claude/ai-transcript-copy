@@ -40,6 +40,7 @@ const htmlToText = h => {
         .replace(/<p[^>]*>/gi, '\n\n')
         .replace(/<\/?(b|strong)\b[^>]*>/gi, '**')
         .replace(/<\/?(i|em)\b[^>]*>/gi, '*')
+        .replace(/<img[^>]*>/gi, m => { const alt = (m.match(/alt="([^"]*)"/i)?.[1] || '').replace(/^[\s,]+|[\s,]+$/g, ''); const src = m.match(/src="([^"]*)"/i)?.[1] || ''; return src ? `![${alt}](${src})\n` : ''; })
         .replace(/<\/div>/gi, '\n')
         .replace(/<[^>]+>/g, '')
         .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
