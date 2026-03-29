@@ -112,16 +112,65 @@ const getFileThumbnailContent = (el) => {
 
 const copyClaudeTranscript = async (qSelector, aSelector, startIdx) => {
     startIdx = Number(startIdx);
-    const elements = [...document.querySelectorAll(`${qSelector}, ${aSelector}`)];
+    const rawElements = [...document.querySelectorAll(`${qSelector}, ${aSelector}`)];
     const artifactMap = buildArtifactMap();
     const htmlParts = [];
+
+    // Pre-pass: group consecutive file-thumbnails with their following user-message (same turn)
+    const turns = [];
+    let i = 0;
+    while (i < rawElements.length) {
+        const el = rawElements[i];
+        if (el.matches('[data-testid="file-thumbnail"]')) {
+            const thumbs = [];
+            while (i < rawElements.length && rawElements[i].matches('[data-testid="file-thumbnail"]')) {
+                thumbs.push(rawElements[i++]);
+            }
+            if (i < rawElements.length && rawElements[i].matches("div[data-testid='user-message']")) {
+                turns.push({ type: 'q', thumbs, userMsg: rawElements[i++] });
+            } else {
+                // Paste without a typed question — each thumbnail is its own turn
+                for (const thumb of thumbs) turns.push({ type: 'q', thumbs: [thumb], userMsg: null });
+            }
+        } else if (el.matches(qSelector)) {
+            turns.push({ type: 'q', thumbs: [], userMsg: el });
+            i++;
+        } else {
+            turns.push({ type: 'a', el });
+            i++;
+        }
+    }
+
     let qIdx = -1, aIdx = -1;
-    for (let i = 0; i < elements.length; i++) {
-        const isQ = elements[i].matches(qSelector);
-        if (isQ) qIdx++;
-        if (isQ && elements[i].matches('[data-testid="file-thumbnail"]')) {
-            if (startIdx <= qIdx) {
-                const content = getFileThumbnailContent(elements[i]) || '';
+    for (const turn of turns) {
+        if (turn.type === 'q') {
+            qIdx++;
+            if (startIdx > qIdx) continue;
+            if (turn.userMsg) {
+                // Turn has a typed question (possibly with pasted files attached)
+                const c = cleanElClaude(turn.userMsg);
+                const qTxt = stripMarkdown(c.innerText.replace(/\s+/g,' ').trim());
+                const qTxtAbbr = 100 < qTxt.length ? qTxt.substring(0,100) + '...' : qTxt;
+                const qEl = document.createElement('h2');
+                qEl.textContent = `Q${qIdx+1}: ${qTxtAbbr}`;
+                htmlParts.push(qEl.outerHTML);
+                if (c.querySelector('h1,h2')) demoteHeadings(c, 1);
+                htmlParts.push(`<blockquote>${c.innerHTML}</blockquote>`);
+                for (let t = 0; t < turn.thumbs.length; t++) {
+                    const h3 = document.createElement('h3');
+                    h3.textContent = turn.thumbs.length > 1 ? `Pasted text (${t+1}):` : 'Pasted text:';
+                    htmlParts.push(h3.outerHTML);
+                    const content = getFileThumbnailContent(turn.thumbs[t]) || '';
+                    const pHtml = content.split(/\n\n+/).filter(s => s.trim()).map(s => {
+                        const p = document.createElement('p');
+                        p.textContent = s.trim();
+                        return p.outerHTML;
+                    }).join('');
+                    htmlParts.push(`<blockquote>${pHtml || '<p>(pasted file)</p>'}</blockquote>`);
+                }
+            } else {
+                // Paste only (no typed question) — use paste content as heading
+                const content = getFileThumbnailContent(turn.thumbs[0]) || '';
                 const qTxt = stripMarkdown(content.replace(/\s+/g, ' ').trim());
                 const qTxtAbbr = 100 < qTxt.length ? qTxt.substring(0, 100) + '...' : qTxt;
                 const qEl = document.createElement('h2');
@@ -134,65 +183,58 @@ const copyClaudeTranscript = async (qSelector, aSelector, startIdx) => {
                 }).join('');
                 htmlParts.push(`<blockquote>${pHtml || '<p>(pasted file)</p>'}</blockquote>`);
             }
-            continue;
-        }
-        const c = cleanElClaude(elements[i]);
-        const origCells = [...elements[i].querySelectorAll('.artifact-block-cell')];
-        const cloneCells = [...c.querySelectorAll('.artifact-block-cell')];
-        for (let j = 0; j < origCells.length; j++) {
-            const cloneCell = cloneCells[j];
-            if (!cloneCell) continue;
-            const fiberKey = Object.keys(origCells[j]).find(k => k.startsWith('__reactFiber'));
-            let artifact = null;
-            if (fiberKey) {
-                let node = origCells[j][fiberKey];
-                while (node) {
-                    const props = node.memoizedProps;
-                    if (props?.properties?.id) {
-                        const p = props.properties;
-                        if (p.type === 'text/markdown') {
-                            artifact = await openResearchArtifact(origCells[j]);
-                        } else if (p.content) {
-                            const atype = p.type || '';
-                            artifact = { content: p.content, lang: atype.split('/').pop() || '' };
-                        } else {
-                            artifact = artifactMap?.get(p.id) || null;
+        } else {
+            // AI response
+            if (startIdx > qIdx) continue;
+            aIdx++;
+            const el = turn.el;
+            const c = cleanElClaude(el);
+            const origCells = [...el.querySelectorAll('.artifact-block-cell')];
+            const cloneCells = [...c.querySelectorAll('.artifact-block-cell')];
+            for (let j = 0; j < origCells.length; j++) {
+                const cloneCell = cloneCells[j];
+                if (!cloneCell) continue;
+                const fiberKey = Object.keys(origCells[j]).find(k => k.startsWith('__reactFiber'));
+                let artifact = null;
+                if (fiberKey) {
+                    let node = origCells[j][fiberKey];
+                    while (node) {
+                        const props = node.memoizedProps;
+                        if (props?.properties?.id) {
+                            const p = props.properties;
+                            if (p.type === 'text/markdown') {
+                                artifact = await openResearchArtifact(origCells[j]);
+                            } else if (p.content) {
+                                const atype = p.type || '';
+                                artifact = { content: p.content, lang: atype.split('/').pop() || '' };
+                            } else {
+                                artifact = artifactMap?.get(p.id) || null;
+                            }
+                            break;
                         }
-                        break;
+                        node = node.return;
                     }
-                    node = node.return;
+                }
+                if (artifact?.html !== undefined) {
+                    const div = document.createElement('div');
+                    div.innerHTML = artifact.html;
+                    cloneCell.replaceWith(div);
+                } else if (artifact) {
+                    const pre = document.createElement('pre');
+                    const code = document.createElement('code');
+                    if (artifact.lang) code.className = 'language-' + artifact.lang;
+                    code.textContent = artifact.content;
+                    pre.appendChild(code);
+                    cloneCell.replaceWith(pre);
+                } else {
+                    (cloneCell.closest('[class*="artifact-block"]') || cloneCell).remove();
                 }
             }
-            if (artifact?.html !== undefined) {
-                const div = document.createElement('div');
-                div.innerHTML = artifact.html;
-                cloneCell.replaceWith(div);
-            } else if (artifact) {
-                const pre = document.createElement('pre');
-                const code = document.createElement('code');
-                if (artifact.lang) code.className = 'language-' + artifact.lang;
-                code.textContent = artifact.content;
-                pre.appendChild(code);
-                cloneCell.replaceWith(pre);
-            } else {
-                (cloneCell.closest('[class*="artifact-block"]') || cloneCell).remove();
-            }
-        }
-        if (startIdx <= qIdx) {
-            if (isQ) {
-                const qTxt = stripMarkdown(c.innerText.replace(/\s+/g,' ').trim());
-                const qTxtAbbr = 100 < qTxt.length ? qTxt.substring(0,100) + '...' : qTxt;
-                const qEl = document.createElement("h2");
-                qEl.textContent = `Q${qIdx+1}: ${qTxtAbbr}`;
-                htmlParts.push(qEl.outerHTML);
-            } else {
-                aIdx++;
-                const aEl = document.createElement("h2");
-                aEl.textContent = `A${aIdx+1}`;
-                htmlParts.push(aEl.outerHTML);
-            }
+            const aEl = document.createElement('h2');
+            aEl.textContent = `A${aIdx+1}`;
+            htmlParts.push(aEl.outerHTML);
             if (c.querySelector('h1,h2')) demoteHeadings(c, 1);
-            htmlParts.push(isQ ? `<blockquote>${c.innerHTML}</blockquote>` : c.innerHTML);
+            htmlParts.push(c.innerHTML);
         }
     }
     await writeTranscript(htmlParts, document.title, 'claude', startIdx);
