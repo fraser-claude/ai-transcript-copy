@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "prepare": "git config core.hooksPath .githooks",
     "lint": "eslint 'src/*.js'",
     "test": "node --test 'test/**/*.mjs'",
     "build": "node build.mjs",
