@@ -101,7 +101,7 @@ const writeTranscript = async (htmlParts, title, vendorType, startIdx) => {
     dateLi.textContent = `Date: ${formatDate(new Date())}`;
     const vendorNames = { chatgpt: "ChatGPT", claude: "Claude", gemini: "Gemini", notebooklm: "NotebookLM" };
     const formatLi = document.createElement("li");
-    formatLi.textContent = `This is a transcript between the user (Q{n} headers) and ${vendorNames[vendorType] || vendorType} (A{n} headers)`;
+    formatLi.textContent = `This is a transcript between the user (Q1,Q2,... headers) and ${vendorNames[vendorType] || vendorType} (A1,A2,... headers)`;
     const metaUl = document.createElement("ul");
     metaUl.append(sourceLi, modelLi, dateLi, formatLi);
     if (startIdx == 0) {
