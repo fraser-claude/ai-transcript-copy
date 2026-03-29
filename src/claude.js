@@ -33,6 +33,8 @@ const cleanElClaude = (el) => {
         const wrapper = pre.closest('.group\\/copy');
         if (wrapper) wrapper.replaceWith(pre);
     });
+    // Strip syntax-highlighting spans from code blocks (Claude inlines colored spans)
+    c.querySelectorAll('pre code').forEach(code => { code.textContent = code.innerText; });
     // Replace KaTeX math with $...$ / $$...$$ using LaTeX source from MathML annotation
     c.querySelectorAll('.katex').forEach(el => {
         const annotation = el.querySelector('annotation[encoding="application/x-tex"]');
