@@ -8,11 +8,16 @@
     "lint": "eslint 'src/*.js'",
     "test": "node --test 'test/**/*.mjs'",
     "build": "node build.mjs",
-    "check": "pnpm run lint && pnpm run test && pnpm run build"
+    "check": "pnpm run lint && pnpm run test && pnpm run build",
+    "bookmarklet": "node scripts/run-bookmarklet.mjs",
+    "verify-gdocs": "node scripts/verify-gdocs.mjs",
+    "verify-obsidian": "node scripts/verify-obsidian.mjs",
+    "test-bookmarklet": "node scripts/test-bookmarklet.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9",
     "eslint": "^9",
+    "puppeteer-core": "^24.40.0",
     "terser": "^5"
   }
 }

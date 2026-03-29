@@ -47,6 +47,7 @@ writeFileSync("dist/ai-transcript-copy.js", results.combined.source);
 writeFileSync("dist/ai-transcript-copy.min.js", results.combined.code);
 writeFileSync("dist/ai-transcript-copy.bookmarklet.txt", results.combined.bookmarklet);
 writeFileSync("dist/basic.js", results.basic.source);
+writeFileSync("dist/basic.min.js", results.basic.code);
 writeFileSync("dist/basic.bookmarklet.txt", results.basic.bookmarklet);
 
 // Generate docs/index.html from template
