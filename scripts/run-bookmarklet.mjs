@@ -7,7 +7,8 @@
 // If not, opens the URL in a new tab. Grants clipboard permissions and waits for the toast.
 
 import puppeteer from 'puppeteer-core';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { format } from 'prettier';
 
 const args = process.argv.slice(2);
 const useBasic = args.includes('--basic');
@@ -57,6 +58,14 @@ await client.send('Browser.grantPermissions', {
     origin: new URL(page.url()).origin,
     permissions: ['clipboardReadWrite', 'clipboardSanitizedWrite'],
 });
+
+console.log('Capturing DOM snapshot...');
+const rawDom = await page.evaluate(() => document.documentElement.outerHTML);
+const stripped = rawDom.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '').replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '');
+const prettyDom = await format(stripped, { parser: 'html' });
+mkdirSync('tmp', { recursive: true });
+writeFileSync('tmp/transcript-raw-dom.html', prettyDom);
+console.log(`tmp/transcript-raw-dom.html: ${prettyDom.length} bytes`);
 
 console.log(`Running ${distFile}`);
 
