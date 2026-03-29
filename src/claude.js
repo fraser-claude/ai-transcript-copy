@@ -99,6 +99,17 @@ const openResearchArtifact = (cell) => new Promise((resolve, reject) => {
     setTimeout(() => reject(new Error('Timed out')), 3000);
 });
 
+const getFileThumbnailContent = (el) => {
+    const fiberKey = Object.keys(el).find(k => k.startsWith('__reactFiber'));
+    if (!fiberKey) return null;
+    let node = el[fiberKey];
+    for (let i = 0; node && i < 20; i++) {
+        if (node.memoizedProps?.file?.extracted_content) return node.memoizedProps.file.extracted_content;
+        node = node.return;
+    }
+    return null;
+};
+
 const copyClaudeTranscript = async (qSelector, aSelector, startIdx) => {
     startIdx = Number(startIdx);
     const elements = [...document.querySelectorAll(`${qSelector}, ${aSelector}`)];
@@ -108,6 +119,23 @@ const copyClaudeTranscript = async (qSelector, aSelector, startIdx) => {
     for (let i = 0; i < elements.length; i++) {
         const isQ = elements[i].matches(qSelector);
         if (isQ) qIdx++;
+        if (isQ && elements[i].matches('[data-testid="file-thumbnail"]')) {
+            if (startIdx <= qIdx) {
+                const content = getFileThumbnailContent(elements[i]) || '';
+                const qTxt = stripMarkdown(content.replace(/\s+/g, ' ').trim());
+                const qTxtAbbr = 100 < qTxt.length ? qTxt.substring(0, 100) + '...' : qTxt;
+                const qEl = document.createElement('h2');
+                qEl.textContent = `Q${qIdx+1}: ${qTxtAbbr}`;
+                htmlParts.push(qEl.outerHTML);
+                const pHtml = content.split(/\n\n+/).filter(s => s.trim()).map(s => {
+                    const p = document.createElement('p');
+                    p.textContent = s.trim();
+                    return p.outerHTML;
+                }).join('');
+                htmlParts.push(`<blockquote>${pHtml || '<p>(pasted file)</p>'}</blockquote>`);
+            }
+            continue;
+        }
         const c = cleanElClaude(elements[i]);
         const origCells = [...elements[i].querySelectorAll('.artifact-block-cell')];
         const cloneCells = [...c.querySelectorAll('.artifact-block-cell')];
