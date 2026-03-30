@@ -110,6 +110,8 @@ const getFileThumbnailContent = (el) => {
     return null;
 };
 
+const getFileThumbnailName = (el) => el.querySelector('h3')?.textContent?.trim() || '(file)';
+
 const copyClaudeTranscript = async (qSelector, aSelector, startIdx) => {
     startIdx = Number(startIdx);
     const rawElements = [...document.querySelectorAll(`${qSelector}, ${aSelector}`)];
@@ -156,32 +158,71 @@ const copyClaudeTranscript = async (qSelector, aSelector, startIdx) => {
                 htmlParts.push(qEl.outerHTML);
                 if (c.querySelector('h1,h2')) demoteHeadings(c, 1);
                 htmlParts.push(`<blockquote>${c.innerHTML}</blockquote>`);
-                for (let t = 0; t < turn.thumbs.length; t++) {
-                    const h3 = document.createElement('h3');
-                    h3.textContent = turn.thumbs.length > 1 ? `Pasted text (${t+1}):` : 'Pasted text:';
-                    htmlParts.push(h3.outerHTML);
-                    const content = getFileThumbnailContent(turn.thumbs[t]) || '';
+                if (turn.thumbs.length > 0) {
+                    const pastedCount = turn.thumbs.filter(t => getFileThumbnailContent(t) !== null).length;
+                    let pastedIdx = 0;
+                    const fileNames = [];
+                    for (const thumb of turn.thumbs) {
+                        const content = getFileThumbnailContent(thumb);
+                        if (content !== null) {
+                            pastedIdx++;
+                            const h3 = document.createElement('h3');
+                            h3.textContent = pastedCount > 1 ? `Pasted text (${pastedIdx}):` : 'Pasted text:';
+                            htmlParts.push(h3.outerHTML);
+                            const pHtml = content.split(/\n\n+/).filter(s => s.trim()).map(s => {
+                                const p = document.createElement('p');
+                                p.textContent = s.trim();
+                                return p.outerHTML;
+                            }).join('');
+                            htmlParts.push(`<blockquote>${pHtml}</blockquote>`);
+                        } else {
+                            fileNames.push(getFileThumbnailName(thumb));
+                        }
+                    }
+                    if (fileNames.length > 0) {
+                        const h3 = document.createElement('h3');
+                        h3.textContent = 'Attachments';
+                        htmlParts.push(h3.outerHTML);
+                        const ul = document.createElement('ul');
+                        for (const name of fileNames) {
+                            const li = document.createElement('li');
+                            li.textContent = name;
+                            ul.appendChild(li);
+                        }
+                        htmlParts.push(ul.outerHTML);
+                    }
+                }
+            } else {
+                // Thumbnail only (no typed question) — pasted text or file attachment
+                const content = getFileThumbnailContent(turn.thumbs[0]);
+                if (content !== null) {
+                    // Pasted text — use content as heading
+                    const qTxt = stripMarkdown(content.replace(/\s+/g, ' ').trim());
+                    const qTxtAbbr = 100 < qTxt.length ? qTxt.substring(0, 100) + '...' : qTxt;
+                    const qEl = document.createElement('h2');
+                    qEl.textContent = `Q${qIdx+1}: ${qTxtAbbr}`;
+                    htmlParts.push(qEl.outerHTML);
                     const pHtml = content.split(/\n\n+/).filter(s => s.trim()).map(s => {
                         const p = document.createElement('p');
                         p.textContent = s.trim();
                         return p.outerHTML;
                     }).join('');
-                    htmlParts.push(`<blockquote>${pHtml || '<p>(pasted file)</p>'}</blockquote>`);
+                    htmlParts.push(`<blockquote>${pHtml}</blockquote>`);
+                } else {
+                    // File attachment — use filename as heading
+                    const name = getFileThumbnailName(turn.thumbs[0]);
+                    const qEl = document.createElement('h2');
+                    qEl.textContent = `Q${qIdx+1}: ${name}`;
+                    htmlParts.push(qEl.outerHTML);
+                    const h3 = document.createElement('h3');
+                    h3.textContent = 'Attachments';
+                    htmlParts.push(h3.outerHTML);
+                    const ul = document.createElement('ul');
+                    const li = document.createElement('li');
+                    li.textContent = name;
+                    ul.appendChild(li);
+                    htmlParts.push(ul.outerHTML);
                 }
-            } else {
-                // Paste only (no typed question) — use paste content as heading
-                const content = getFileThumbnailContent(turn.thumbs[0]) || '';
-                const qTxt = stripMarkdown(content.replace(/\s+/g, ' ').trim());
-                const qTxtAbbr = 100 < qTxt.length ? qTxt.substring(0, 100) + '...' : qTxt;
-                const qEl = document.createElement('h2');
-                qEl.textContent = `Q${qIdx+1}: ${qTxtAbbr}`;
-                htmlParts.push(qEl.outerHTML);
-                const pHtml = content.split(/\n\n+/).filter(s => s.trim()).map(s => {
-                    const p = document.createElement('p');
-                    p.textContent = s.trim();
-                    return p.outerHTML;
-                }).join('');
-                htmlParts.push(`<blockquote>${pHtml || '<p>(pasted file)</p>'}</blockquote>`);
             }
         } else {
             // AI response
