@@ -15,6 +15,12 @@ const cleanElGemini = (el) => {
             if (code && !code.className) code.className = 'language-' + lang;
         }
     });
+    // Extract research plan content from confirmation widget before removing [hide-from-message-actions] chrome
+    c.querySelectorAll('deep-research-confirmation-widget').forEach(widget => {
+        const plan = widget.querySelector('[hide-from-message-actions]');
+        if (plan) { plan.removeAttribute('hide-from-message-actions'); widget.replaceWith(plan); }
+        else widget.remove();
+    });
     c.querySelectorAll('code-block div.code-block-decoration, .cdk-visually-hidden, p.query-text-line br, source-footnote, sources-carousel-inline, source-inline-chip, overview-carousel, [hide-from-message-actions]').forEach(e => e.remove());
     c.querySelectorAll('[data-math]').forEach(e => { const tex = e.getAttribute('data-math'); e.textContent = e.tagName === 'DIV' ? '$$' + tex + '$$' : '$' + tex + '$'; });
     c.querySelectorAll('li').forEach(e => e.innerText = e.innerText); // eslint-disable-line no-self-assign

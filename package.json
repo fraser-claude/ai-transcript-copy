@@ -13,7 +13,8 @@
     "bookmarklet": "node scripts/run-bookmarklet.mjs",
     "verify-gdocs": "node scripts/verify-gdocs.mjs",
     "verify-obsidian": "node scripts/verify-obsidian.mjs",
-    "test-bookmarklet": "node scripts/test-bookmarklet.mjs"
+    "test-bookmarklet": "node scripts/test-bookmarklet.mjs",
+    "save-reference": "node scripts/save-reference.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9",

@@ -63,10 +63,16 @@ await client.send('Browser.grantPermissions', {
 console.log('Capturing DOM snapshot...');
 const rawDom = await page.evaluate(() => document.documentElement.outerHTML);
 const stripped = rawDom.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '').replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '');
-const prettyDom = await format(stripped, { parser: 'html' });
+let domToWrite;
+try {
+    domToWrite = await format(stripped, { parser: 'html' });
+} catch (e) {
+    console.warn(`Warning: prettier failed to format DOM snapshot (${e.message.split('\n')[0]}), saving raw`);
+    domToWrite = stripped;
+}
 mkdirSync('tmp', { recursive: true });
-writeFileSync(rawDomPath, prettyDom);
-console.log(`${rawDomPath}: ${prettyDom.length} bytes`);
+writeFileSync(rawDomPath, domToWrite);
+console.log(`${rawDomPath}: ${domToWrite.length} bytes`);
 
 console.log(`Running ${distFile}`);
 
