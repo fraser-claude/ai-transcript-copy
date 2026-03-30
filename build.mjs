@@ -18,7 +18,7 @@ async function buildVariant(source, label, sizeLimit) {
     console.log(`${label} minified:    ${result.code.length} chars`);
     console.log(`${label} bookmarklet: ${bookmarklet.length} chars`);
     if (sizeLimit && bookmarklet.length > sizeLimit) {
-        console.error(`ERROR: ${label} bookmarklet is ${bookmarklet.length} bytes, exceeds iOS Chrome limit of ${sizeLimit} bytes`);
+        console.error(`ERROR: ${label} bookmarklet is ${bookmarklet.length} bytes, exceeds Chrome sync limit of ${sizeLimit} bytes`);
         process.exit(1);
     }
     return { code: result.code, bookmarklet };
@@ -26,15 +26,16 @@ async function buildVariant(source, label, sizeLimit) {
 
 mkdirSync("dist", { recursive: true });
 
-// This is approximate, and does not seem exact.
-// - e.g. by truncating: `cat dist/ai-transcript-copy.bookmarklet.txt | head -c 6292`
-// - 6292 byte bookmarklet synced to iOS Chrome at one point, but not another.
-// - So set the limit conservatively at 6k, which appears to reliably work.
-const IOS_LIMIT = 6000;
+// Chrome's bookmark sync service silently drops bookmarks larger than ~6 KB.
+// This only affects bookmarks synced via Chrome — manually created bookmarks
+// on iOS Chrome or iOS Safari have no such limit.
+// The threshold is approximate: a 6292-byte bookmarklet synced at one point but
+// not another, so set the limit conservatively at 6k to reliably work.
+const CHROME_SYNC_LIMIT = 6000;
 
 const variants = [
     { name: 'combined', label: 'Combined', parts: ['common','chatgpt','gemini','notebooklm','claude','combined-entry'], limit: null },
-    { name: 'basic',    label: 'Basic',    parts: ['common','basic-combined-entry'],                                    limit: IOS_LIMIT },
+    { name: 'basic',    label: 'Basic',    parts: ['common','basic-combined-entry'],                                    limit: CHROME_SYNC_LIMIT },
 ];
 
 const results = {};

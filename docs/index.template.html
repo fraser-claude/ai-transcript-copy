@@ -16,6 +16,8 @@
     }
     h1 { margin-bottom: 0.25rem; }
     h2 { margin-top: 2rem; }
+    h3 { margin-top: 1.5rem; margin-bottom: 0.5rem; }
+    h4 { margin-top: 1.25rem; margin-bottom: 0.25rem; }
     .bookmarklet-wrap {
       background: #f1f5f9;
       border: 2px dashed #94a3b8;
@@ -28,6 +30,13 @@
       margin: 0 0 0.75rem;
       color: #64748b;
       font-size: 0.9rem;
+    }
+    .bookmarklet-actions {
+      display: inline-flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
     }
     .bookmarklet-link {
       display: inline-block;
@@ -42,6 +51,19 @@
       user-select: none;
     }
     .bookmarklet-link:hover { background: #1d4ed8; }
+    .copy-btn {
+      display: inline-block;
+      padding: 0.65rem 1.1rem;
+      background: #475569;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .copy-btn:hover { background: #334155; }
+    .copy-btn.copied { background: #16a34a; }
     ol, ul { padding-left: 1.5rem; }
     li { margin-bottom: 0.25rem; }
     code {
@@ -74,20 +96,57 @@
 
   <h2>Install (Desktop)</h2>
   <div class="bookmarklet-wrap">
-    <p>Drag this button to your bookmarks bar:</p>
-    <a class="bookmarklet-link" href="{{BOOKMARKLET_HREF}}" title="AI Transcript Copy bookmarklet">AI Transcript Copy</a>
+    <p>Drag this button to your bookmarks bar, or use the Copy button to copy the bookmarklet URL:</p>
+    <div class="bookmarklet-actions">
+      <a class="bookmarklet-link" href="{{BOOKMARKLET_HREF}}" title="AI Transcript Copy bookmarklet">AI Transcript Copy</a>
+      <button class="copy-btn" type="button">Copy URL</button>
+    </div>
   </div>
 
   <div class="note">
     Make sure your bookmarks bar is visible first: <code>Ctrl+Shift+B</code> on Windows/Linux, <code>Cmd+Shift+B</code> on Mac.
   </div>
 
-  <h2>Install (Mobile — iOS Chrome)</h2>
-  <p>iOS Chrome syncs bookmarks up to ~6 KB. Use the Basic bookmarklet instead of the combined one above — it works on all supported sites but skips deep research reports and Claude artifacts:</p>
+  <h2>Install (iOS)</h2>
+  <p>Chrome's bookmark sync service drops bookmarks larger than ~6 KB, so the Standard bookmarklet won't sync to iOS Chrome. There are two options:</p>
+
+  <h3>Option A — Sync the Basic bookmarklet via Chrome</h3>
+  <p>The Basic bookmarklet is small enough to sync automatically. It handles all supported sites but skips deep research reports and Claude artifacts.</p>
   <div class="bookmarklet-wrap">
-    <p>Drag this button to your bookmarks bar, or tap-and-hold on mobile:</p>
-    <a class="bookmarklet-link" href="{{BOOKMARKLET_HREF_BASIC}}" title="AI Transcript Copy (Basic) bookmarklet">AI Transcript Copy (Basic)</a>
+    <p>Drag to your bookmarks bar on desktop (it will sync to iOS), or use the Copy button:</p>
+    <div class="bookmarklet-actions">
+      <a class="bookmarklet-link" href="{{BOOKMARKLET_HREF_BASIC}}" title="AI Transcript Copy (Basic) bookmarklet">AI Transcript Copy (Basic)</a>
+      <button class="copy-btn" type="button">Copy URL</button>
+    </div>
   </div>
+
+  <h3>Option B — Manually install the Standard bookmarklet</h3>
+  <p>The Standard bookmarklet can be installed manually on iOS with no size restriction. Use the Copy button below to copy the bookmarklet URL, then follow the steps for your browser.</p>
+  <div class="bookmarklet-wrap">
+    <p>Copy the bookmarklet URL to paste into a bookmark:</p>
+    <div class="bookmarklet-actions">
+      <a class="bookmarklet-link" href="{{BOOKMARKLET_HREF}}" title="AI Transcript Copy bookmarklet">AI Transcript Copy</a>
+      <button class="copy-btn" type="button">Copy URL</button>
+    </div>
+  </div>
+
+  <h4>iOS Chrome</h4>
+  <ol>
+    <li>Tap <strong>Copy URL</strong> above.</li>
+    <li>Bookmark any page in Chrome (tap the share icon &rarr; <em>Add to Bookmarks</em>).</li>
+    <li>Open <em>Bookmarks</em>, find the bookmark you just created, and tap <em>Edit</em>.</li>
+    <li>Clear the URL field, long-press it, and tap <em>Paste</em>.</li>
+    <li>Rename the bookmark to <em>AI Transcript Copy</em> and save.</li>
+  </ol>
+
+  <h4>iOS Safari</h4>
+  <ol>
+    <li>Tap <strong>Copy URL</strong> above.</li>
+    <li>Bookmark any page in Safari (tap the share icon &rarr; <em>Add Bookmark</em>). Save it.</li>
+    <li>Open <em>Bookmarks</em>, find the bookmark, and tap <em>Edit</em>.</li>
+    <li>Clear the URL field, long-press it, and tap <em>Paste</em>.</li>
+    <li>Rename the bookmark to <em>AI Transcript Copy</em> and save.</li>
+  </ol>
 
   <h2>Usage</h2>
   <ol>
@@ -116,5 +175,40 @@
   <footer>
     <a href="https://github.com/fraser/ai-transcript-copy">Source on GitHub</a> &mdash; MIT License
   </footer>
+
+  <script>
+    document.querySelectorAll('.copy-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var link = btn.closest('.bookmarklet-actions').querySelector('.bookmarklet-link');
+        var url = link.href;
+        function showCopied() {
+          btn.textContent = 'Copied!';
+          btn.classList.add('copied');
+          setTimeout(function() {
+            btn.textContent = 'Copy URL';
+            btn.classList.remove('copied');
+          }, 2000);
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(showCopied, function() {
+            fallbackCopy(url, showCopied);
+          });
+        } else {
+          fallbackCopy(url, showCopied);
+        }
+      });
+    });
+    function fallbackCopy(text, callback) {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      callback();
+    }
+  </script>
 </body>
 </html>

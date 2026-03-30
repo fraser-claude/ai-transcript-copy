@@ -41,7 +41,7 @@ For example:
 Two versions are provided:
 
 - Standard: Supports as many chat features as possible without worrying about bookmarklet size.
-- Basic: basic user/assistant messages, maintaining a small size and feature set for compatibility with mobile OSes and sites. (It seems a bookmark > 6k bytes won't sync to iOS Chrome.)
+- Basic: basic user/assistant messages, small enough for Chrome's bookmark sync service (~6 KB limit). For iOS, the Standard bookmarklet can also be installed manually — see the install page for step-by-step instructions for iOS Chrome and Safari.
 
 ## Why a bookmarklet instead of an extension?
 
