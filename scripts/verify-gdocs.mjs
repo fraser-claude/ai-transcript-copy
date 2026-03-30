@@ -9,10 +9,18 @@ import puppeteer from 'puppeteer-core';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 
 const GDOCS_URL = 'https://docs.google.com/document/d/1Irr9gUG3CTOZ10oD_ad5I-Ei4PFsiM8RJ5unUIcMQAg/edit?pli=1&tab=t.0';
-const OUTPUT = 'tmp/verify-gdocs.pdf';
 
-const html = readFileSync('tmp/sample.html', 'utf8');
-const text = readFileSync('tmp/sample.md', 'utf8');
+function getArg(flag, fallback) {
+    const i = process.argv.indexOf(flag);
+    return i !== -1 && process.argv[i + 1] ? process.argv[i + 1] : fallback;
+}
+
+const htmlPath = getArg('--html', 'tmp/sample.html');
+const textPath = getArg('--text', 'tmp/sample.md');
+const OUTPUT = getArg('--output', 'tmp/verify-gdocs.pdf');
+
+const html = readFileSync(htmlPath, 'utf8');
+const text = readFileSync(textPath, 'utf8');
 
 let browser;
 try {
@@ -46,7 +54,7 @@ await client.send('Browser.grantPermissions', {
 });
 
 // Write sample files to clipboard
-console.log('Setting clipboard from tmp/sample.html and tmp/sample.md');
+console.log(`Setting clipboard from ${htmlPath} and ${textPath}`);
 await page.evaluate(async (htmlContent, textContent) => {
     await navigator.clipboard.write([
         new ClipboardItem({

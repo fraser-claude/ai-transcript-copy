@@ -13,6 +13,7 @@ import { format } from 'prettier';
 const args = process.argv.slice(2);
 const useBasic = args.includes('--basic');
 const url = args.find(a => !a.startsWith('--'));
+const rawDomPath = (() => { const i = args.indexOf('--output'); return i !== -1 && args[i + 1] ? args[i + 1] : 'tmp/transcript-raw-dom.html'; })();
 
 if (!url) {
     console.error('Usage: node scripts/run-bookmarklet.mjs <url> [--basic]');
@@ -64,8 +65,8 @@ const rawDom = await page.evaluate(() => document.documentElement.outerHTML);
 const stripped = rawDom.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '').replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '');
 const prettyDom = await format(stripped, { parser: 'html' });
 mkdirSync('tmp', { recursive: true });
-writeFileSync('tmp/transcript-raw-dom.html', prettyDom);
-console.log(`tmp/transcript-raw-dom.html: ${prettyDom.length} bytes`);
+writeFileSync(rawDomPath, prettyDom);
+console.log(`${rawDomPath}: ${prettyDom.length} bytes`);
 
 console.log(`Running ${distFile}`);
 
