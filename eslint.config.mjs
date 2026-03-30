@@ -46,7 +46,10 @@ export default [
       },
     },
     rules: {
-      "no-unused-vars": "warn",
+      "no-unused-vars": ["warn", {
+        // Cross-file names are defined in one src/ file and used in another after build-time concatenation
+        "varsIgnorePattern": "^(showToast|stripMarkdown|htmlToText|formatDate|getModel|writeTranscript|demoteHeadings|copyChatGPTTranscript|copyGeminiTranscript|copyNotebookLMTranscript|copyClaudeTranscript)$",
+      }],
       "eqeqeq": "off",
     },
   },
