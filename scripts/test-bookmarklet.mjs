@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 // Full test pipeline: run bookmarklet, dump clipboard, verify in Google Docs and Obsidian.
-// Usage: node scripts/test-bookmarklet.mjs <url> [--basic]
+// Usage: node scripts/test-bookmarklet.mjs <url> [--basic] [--force]
 //
 // Steps:
 //   1. Run bookmarklet on <url> (opens/refreshes the tab, waits for toast)
-//   2. Dump clipboard to tmp/{id}.html and tmp/{id}.md via xclip
-//   3. Run verify-gdocs.mjs  → tmp/{id}-gdocs.pdf
-//   4. Run verify-obsidian.mjs → tmp/{id}-obsidian.md
+//   2. Dump clipboard to tmp/{id}[.basic].html and tmp/{id}[.basic].md via xclip
+//   3. Run verify-gdocs.mjs  → tmp/{id}[.basic]-gdocs.pdf
+//   4. Run verify-obsidian.mjs → tmp/{id}[.basic]-obsidian.md
 
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -19,7 +19,7 @@ const args = process.argv.slice(2);
 const url = args.find(a => !a.startsWith('--'));
 
 if (!url) {
-    console.error('Usage: node scripts/test-bookmarklet.mjs <url> [--basic]');
+    console.error('Usage: node scripts/test-bookmarklet.mjs <url> [--basic] [--force]');
     process.exit(1);
 }
 
@@ -29,11 +29,25 @@ if (!id) {
     process.exit(1);
 }
 
-const htmlPath = `tmp/${id}.html`;
-const textPath = `tmp/${id}.md`;
-const rawDomPath = `tmp/${id}-raw-dom.html`;
-const gdocsPath = `tmp/${id}-gdocs.pdf`;
-const obsidianPath = `tmp/${id}-obsidian.md`;
+const basic = args.includes('--basic');
+const force = args.includes('--force');
+const suffix = basic ? '.basic' : '';
+
+const refHtml = `reference-points/${id}${suffix}.html`;
+const refText = `reference-points/${id}${suffix}.md`;
+if (!force && (existsSync(refHtml) || existsSync(refText))) {
+    console.error(`Reference point already exists for ${id}${suffix}.`);
+    console.error(`  ${refHtml}`);
+    console.error(`  ${refText}`);
+    console.error('Use --force to re-run anyway.');
+    process.exit(1);
+}
+
+const htmlPath = `tmp/${id}${suffix}.html`;
+const textPath = `tmp/${id}${suffix}.md`;
+const rawDomPath = `tmp/${id}${suffix}-raw-dom.html`;
+const gdocsPath = `tmp/${id}${suffix}-gdocs.pdf`;
+const obsidianPath = `tmp/${id}${suffix}-obsidian.md`;
 
 function run(label, cmd, cmdArgs) {
     console.log(`\n=== ${label} ===`);
@@ -44,7 +58,7 @@ mkdirSync('tmp', { recursive: true });
 
 // Step 1: run bookmarklet
 const bookmarkletArgs = ['node', join(__dirname, 'run-bookmarklet.mjs'), url, '--output', rawDomPath];
-if (args.includes('--basic')) bookmarkletArgs.push('--basic');
+if (basic) bookmarkletArgs.push('--basic');
 run('Running bookmarklet', bookmarkletArgs[0], bookmarkletArgs.slice(1));
 
 // Step 2: dump clipboard to tmp/
