@@ -49,7 +49,7 @@ I wanted something I could use on desktop and mobile Chrome in iOS. It should al
 
 ## Install
 
-Visit the **[install page](https://fraser-claude.github.io/ai-transcript-copy/)** and drag the button to your bookmarks bar.
+Visit the **[install page](https://fraser.github.io/ai-transcript-copy/)** and drag the button to your bookmarks bar.
 
 Make sure your bookmarks bar is visible first: `Ctrl+Shift+B` on Windows/Linux, `Cmd+Shift+B` on Mac.
 
